@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Stockify{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Professional Error Styling */
+        .form-error-message ul { list-style: none; padding: 0; margin: 0; }
+        .form-error-message li {
+            color: #e11d48; font-size: 0.70rem; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem;
+        }
+        /* Hide browser default number arrows */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+    </style>
+
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+<div class="flex flex-col min-h-screen">
+
+    <aside class="bg-slate-800 text-white shadow-lg z-50">
+        <div class="px-4 md:px-8 flex flex-col md:flex-row md:items-center">
+
+            <div class="flex justify-between items-center py-4 flex-shrink-0">
+                <div class="text-xl font-bold uppercase tracking-wider">
+                    Stockify
+                </div>
+
+                <button onclick="toggleMenu()" class="md:hidden p-2 rounded hover:bg-slate-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <nav id="mobile-menu" class="hidden md:block flex-1">
+                <ul class="flex flex-col md:flex-row md:items-center md:justify-center">
+                    {% set links = [
+                        {'path': 'app_dashboard', 'label': 'Dashboard'},
+                        {'path': 'app_product_index', 'label': 'Products'},
+                        {'path': 'app_category_index', 'label': 'Categories'},
+                        {'path': 'app_donation_page', 'label': 'Donations'},
+                        {'path': 'app_restock_page', 'label': 'Restock'},
+                        {'path': 'app_transaction_index', 'label': 'Transactions'}
+                    ] %}
+
+                    {% for link in links %}
+                        {# This line detects the current page route #}
+                        {% set is_active = app.request.attributes.get('_route') == link.path %}
+
+                        <li>
+                            <a href="{{ path(link.path) }}"
+                               class="block py-3 px-4 transition text-sm font-medium whitespace-nowrap rounded-md
+                               {{ is_active
+                               ? 'bg-slate-700 text-blue-400 font-bold'
+                               : 'text-white hover:bg-slate-700'
+                               }}">
+                                {{ link.label }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+
+            <div class="hidden md:block flex-shrink-0">
+                <a href="{{ path('app_logout') }}" class="block py-3 px-4 text-red-400 hover:bg-red-900/20 font-bold transition text-sm">
+                    Logout
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col">
+        <header class="bg-white shadow-sm p-4 px-8 border-b">
+            <h1 class="text-xl font-bold text-gray-800">
+                {% block page_title %}{% endblock %}
+            </h1>
+        </header>
+
+        <main class="p-4 md:p-8">
+            {% block body %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+
+
+
+{# confirm modal for updating and deleting #}
+<div id="confirm-modal" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 transition-all">
+        <div class="text-center">
+            <div id="modal-icon-container" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-4">
+                <svg id="modal-icon" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"></svg>
+            </div>
+            <h3 id="modal-title" class="text-xl font-bold text-gray-900">Confirm Action</h3>
+            <p id="modal-description" class="text-gray-500 mt-2">Are you sure you want to proceed?</p>
+        </div>
+
+        <div class="mt-8 flex space-x-3">
+            <button onclick="closeModal()" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-all">
+                Cancel
+            </button>
+
+            <a id="modal-confirm-btn" href="#" class="flex-1 px-4 py-3 text-center text-white rounded-xl font-bold shadow-lg transition-all hidden">
+                Confirm
+            </a>
+            <form id="modal-delete-form" method="post" class="flex-1 hidden">
+                <input type="hidden" name="_token" id="modal-delete-token">
+                <button type="submit" class="w-full px-4 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-200">
+                    Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{# Image Modal #}
+<div id="image-modal" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-4 cursor-zoom-out" onclick="closeImageModal()">
+    <div class="relative max-w-4xl max-h-[90vh]">
+        <button class="absolute -top-12 right-0 text-white hover:text-gray-300 text-3xl font-bold">&times;</button>
+
+        <img id="maximized-image" src="" class="rounded-xl shadow-2xl border-4 border-white/10 max-w-full max-h-[85vh] object-contain mx-auto">
+
+        <p id="image-caption" class="text-white text-center mt-4 font-medium tracking-wide uppercase text-sm"></p>
+    </div>
+</div>
+
+
+{# Javascript for modals #}
+<script>
+    function toggleMenu() {
+        const menu = document.getElementById('mobile-menu');
+        menu.classList.toggle('hidden');
+    }
+
+    //Editing and deleting confirm modal
+    const modal = document.getElementById('confirm-modal');
+    const modalIcon = document.getElementById('modal-icon');
+    const modalIconBox = document.getElementById('modal-icon-container');
+    const modalTitle = document.getElementById('modal-title');
+    const modalDesc = document.getElementById('modal-description');
+    const confirmLink = document.getElementById('modal-confirm-btn');
+    const deleteForm = document.getElementById('modal-delete-form');
+
+    function openConfirmModal(type, url = '', token = '') {
+        const modal = document.getElementById('confirm-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDesc = document.getElementById('modal-description');
+        const confirmBtn = document.getElementById('modal-confirm-btn');
+        const deleteForm = document.getElementById('modal-delete-form');
+
+        modal.classList.remove('hidden');
+
+        if (type === 'delete') {
+            modalTitle.innerText = "Confirm Delete";
+            modalDesc.innerText = "Are you sure? This product will be gone forever.";
+            confirmBtn.classList.add('hidden');
+            deleteForm.classList.remove('hidden');
+            deleteForm.setAttribute('action', url);
+            document.getElementById('modal-delete-token').value = token;
+        }
+        else {
+            // For CREATE or UPDATE
+            modalTitle.innerText = (type === 'create') ? "Create Product?" : "Update Product?";
+            modalDesc.innerText = "Check your details before saving to the database.";
+
+            deleteForm.classList.add('hidden');
+            confirmBtn.classList.remove('hidden');
+            confirmBtn.innerText = "Yes, Save it";
+            confirmBtn.className = "flex-1 px-4 py-3 text-center bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 cursor-pointer";
+
+            // When clicked, submit the actual form
+            confirmBtn.onclick = function() {
+                document.getElementById('product-form').submit();
+            };
+        }
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+    }
+
+    //Maximising product images modal
+    function maximizeImage(src) {
+        const modal = document.getElementById('image-modal');
+        const maxImg = document.getElementById('maximized-image');
+
+        maxImg.src = src;
+        modal.classList.remove('hidden');
+
+        // Prevent scrolling behind the modal
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeImageModal() {
+        const modal = document.getElementById('image-modal');
+        modal.classList.add('hidden');
+
+        // Re-enable scrolling
+        document.body.style.overflow = 'auto';
+    }
+
+    //Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === "Escape") closeImageModal();
+    });
+</script>
+</body>
+</html>
