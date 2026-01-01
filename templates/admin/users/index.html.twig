@@ -1,0 +1,210 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}Users{% endblock %}
+
+{% block body %}
+    {# Reduced py-8 to pt-2 pb-8 to bring the content closer to the header #}
+    <div class="max-w-6xl mx-auto pt-2 pb-8">
+
+        {# Header: Optimized spacing #}
+        <div class="flex flex-col sm:flex-row justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 mb-5 shadow-sm">
+            <div>
+                <h1 class="text-xl font-black text-slate-900 tracking-tight">User Management</h1>
+                <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Access Control & Accounts</p>
+            </div>
+            <button onclick="openAddUserModal()" class="mt-4 sm:mt-0 px-6 py-2.5 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition-all shadow-lg shadow-slate-200">
+                + Add New User
+            </button>
+        </div>
+
+        {# Table Section #}
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full">
+                <thead>
+                <tr class="bg-slate-50 border-b border-slate-200">
+                    <th class="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Identity</th>
+                    <th class="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Status</th>
+                    <th class="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                {% for user in users %}
+                    <tr class="hover:bg-slate-50/50 transition-colors group">
+                        <td class="py-4 px-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center font-black text-slate-500 border border-slate-200 uppercase text-xs">
+                                    {{ user.name|slice(0, 1) }}
+                                </div>
+                                <div>
+                                    <div class="text-sm font-bold text-slate-900">{{ user.name }}</div>
+                                    <div class="text-[11px] text-slate-400 font-medium">{{ user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-4 px-6 text-center">
+                            {% if user.isActive %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-wider border border-emerald-100">
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-wider border border-amber-100">
+                                    Pending
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-6 text-right">
+                            <div class="flex justify-end items-center gap-2">
+                                <button onclick="openUserModal('toggle', '{{ user.name }}', '{{ path('app_admin_user_toggle', {id: user.id}) }}', '{{ user.isActive ? 'deactivate' : 'approve' }}')"
+                                        class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all
+                                        {{ user.isActive ? 'border-slate-200 text-slate-500 hover:bg-slate-100' : 'border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white' }}">
+                                    {{ user.isActive ? 'Deactivate' : 'Approve' }}
+                                </button>
+
+                                {% if user != app.user %}
+                                    <button onclick="openUserModal('delete', '{{ user.name }}', '{{ path('app_admin_user_delete', {id: user.id}) }}', '', '{{ csrf_token('delete' ~ user.id) }}')"
+                                            class="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# --- DYNAMIC CONFIRMATION MODAL --- #}
+    <div id="userActionModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden transform transition-all scale-95 opacity-0 duration-200" id="modalContent">
+            <div class="p-6 text-center">
+                <div id="modalIconContainer" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4">
+                    <svg id="modalIcon" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+                </div>
+                <h3 id="modalTitle" class="text-xl font-bold text-slate-900 mb-2"></h3>
+                <p id="modalDescription" class="text-sm text-slate-500 leading-relaxed"></p>
+            </div>
+            <div class="p-4 bg-slate-50 flex gap-3">
+                <button onclick="closeUserModal()" class="flex-1 px-4 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-100 transition-all">
+                    Cancel
+                </button>
+                {# This form handles both GET (toggle) and POST (delete) #}
+                <form id="modalForm" method="GET" class="flex-1">
+                    <input type="hidden" name="_token" id="modalCsrfToken">
+                    <button type="submit" id="modalConfirmBtn" class="w-full px-4 py-2.5 text-white rounded-xl font-bold text-sm shadow-lg transition-all"></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# --- ADD NEW USER MODAL --- #}
+    <div id="addUserModal" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-[2rem] max-w-md w-full shadow-2xl overflow-hidden">
+            <div class="p-8">
+                <h3 class="text-2xl font-bold text-slate-900 mb-1">Create Account</h3>
+                <p class="text-sm text-slate-500 mb-6">Directly register a new user to the system.</p>
+
+                <form action="{{ path('app_admin_user_new') }}" method="POST" class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Full Name</label>
+                        <input type="text" name="name" required
+                               class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Email Address</label>
+                        <input type="email" name="email" required
+                               class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-4">
+                        <p class="text-[10px] text-blue-700 leading-relaxed font-medium">
+                            <b>Note:</b> The default password is <span class="font-bold underline">Welcome123!</span>.
+                            Please advise the user to change it upon their first login.
+                        </p>
+                    </div>
+
+                    <div class="flex gap-3 mt-8">
+                        <button type="button" onclick="closeAddUserModal()" class="flex-1 px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-all">
+                            Cancel
+                        </button>
+                        <button type="submit" class="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all">
+                            Create User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openUserModal(type, name, url, actionText = '', csrf = '') {
+            const modal = document.getElementById('userActionModal');
+            const content = document.getElementById('modalContent');
+            const title = document.getElementById('modalTitle');
+            const desc = document.getElementById('modalDescription');
+            const btn = document.getElementById('modalConfirmBtn');
+            const form = document.getElementById('modalForm');
+            const icon = document.getElementById('modalIcon');
+            const iconBox = document.getElementById('modalIconContainer');
+            const csrfInput = document.getElementById('modalCsrfToken');
+
+            // Reset Defaults
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => { content.classList.add('scale-100', 'opacity-100'); }, 10);
+
+            form.action = url;
+            csrfInput.value = csrf;
+
+            if (type === 'delete') {
+                form.method = 'POST';
+                title.innerText = 'Delete User';
+                desc.innerHTML = `Are you sure you want to delete <b>${name}</b>? This action is permanent.`;
+                btn.innerText = 'Confirm Delete';
+                btn.className = 'w-full px-4 py-2.5 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 shadow-red-100';
+                iconBox.className = 'w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 bg-red-100 text-red-600';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>';
+            } else {
+                form.method = 'GET';
+                const isApprove = actionText === 'approve';
+                title.innerText = isApprove ? 'Approve Access' : 'Deactivate User';
+                desc.innerHTML = isApprove
+                    ? `Give <b>${name}</b> full access to the Stockify system?`
+                    : `Are you sure you want to disable <b>${name}</b>'s account?`;
+                btn.innerText = isApprove ? 'Yes, Approve' : 'Yes, Deactivate';
+                btn.className = isApprove
+                    ? 'w-full px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 shadow-blue-100'
+                    : 'w-full px-4 py-2.5 bg-slate-800 text-white rounded-xl font-bold text-sm hover:bg-slate-900 shadow-slate-200';
+                iconBox.className = isApprove
+                    ? 'w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 bg-blue-100 text-blue-600'
+                    : 'w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 bg-slate-100 text-slate-600';
+                icon.innerHTML = isApprove
+                    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+                    : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/>';
+            }
+        }
+
+        function closeUserModal() {
+            const modal = document.getElementById('userActionModal');
+            const content = document.getElementById('modalContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        }
+
+        function openAddUserModal() {
+            const modal = document.getElementById('addUserModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeAddUserModal() {
+            const modal = document.getElementById('addUserModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    </script>
+{% endblock %}

@@ -18,14 +18,13 @@
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
-        /*flash messages*/
+        /* Flash messages animation */
         @keyframes bounce-in {
             0% { transform: translateY(-20px) scale(0.9); opacity: 0; }
             100% { transform: translateY(0) scale(1); opacity: 1; }
         }
         .animate-bounce-in { animation: bounce-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
     </style>
-
 </head>
 <body class="bg-gray-100 font-sans antialiased">
 
@@ -62,7 +61,7 @@
         <div class="px-4 md:px-8 flex flex-col md:flex-row md:items-center">
 
             <div class="flex justify-between items-center py-4 flex-shrink-0">
-                <div class="text-xl font-bold uppercase tracking-wider">
+                <div class="text-xl font-bold uppercase tracking-wider text-blue-400">
                     Stockify
                 </div>
 
@@ -85,16 +84,11 @@
                     ] %}
 
                     {% for link in links %}
-                        {# This line detects the current page route #}
                         {% set is_active = app.request.attributes.get('_route') == link.path %}
-
                         <li>
                             <a href="{{ path(link.path) }}"
-                               class="block py-3 px-4 transition text-sm font-medium whitespace-nowrap rounded-md
-                               {{ is_active
-                               ? 'bg-slate-700 text-blue-400 font-bold'
-                               : 'text-white hover:bg-slate-700'
-                               }}">
+                               class="block py-3 px-4 transition text-[11px] uppercase tracking-widest font-bold rounded-md
+                               {{ is_active ? 'text-blue-400' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}">
                                 {{ link.label }}
                             </a>
                         </li>
@@ -102,8 +96,27 @@
                 </ul>
             </nav>
 
-            <div class="hidden md:block flex-shrink-0">
-                <a href="{{ path('app_logout') }}" class="block py-3 px-4 text-red-400 hover:bg-red-900/20 font-bold transition text-sm">
+            <div class="flex items-center gap-2 md:gap-4 py-3 border-t md:border-t-0 border-slate-700 ml-auto">
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('app_admin_users') }}"
+                       class="p-2 text-slate-400 hover:text-blue-400 transition-colors border-r border-slate-700 pr-4 mr-2"
+                       title="Manage Users">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </a>
+                {% endif %}
+
+                <a href="{{ path('app_profile_password') }}"
+                   class="flex items-center gap-2 px-3 py-2 bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-blue-400 rounded-xl transition-all border border-slate-700">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Account</span>
+                </a>
+
+                <a href="{{ path('app_logout') }}"
+                   class="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-500/20 transition-all">
                     Logout
                 </a>
             </div>
@@ -112,7 +125,7 @@
 
     <div class="flex-1 flex flex-col">
         <header class="bg-white shadow-sm p-4 px-8 border-b">
-            <h1 class="text-xl font-bold text-gray-800">
+            <h1 class="text-xl font-bold text-gray-800 uppercase tracking-tight">
                 {% block page_title %}{% endblock %}
             </h1>
         </header>
@@ -123,133 +136,11 @@
     </div>
 </div>
 
-
-
-
-{# confirm modal for updating and deleting #}
-<div id="confirm-modal" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 transition-all">
-        <div class="text-center">
-            <div id="modal-icon-container" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-4">
-                <svg id="modal-icon" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"></svg>
-            </div>
-            <h3 id="modal-title" class="text-xl font-bold text-gray-900">Confirm Action</h3>
-            <p id="modal-description" class="text-gray-500 mt-2">Are you sure you want to proceed?</p>
-        </div>
-
-        <div class="mt-8 flex space-x-3">
-            <button onclick="closeModal()" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-bold transition-all">
-                Cancel
-            </button>
-
-            <a id="modal-confirm-btn" href="#" class="flex-1 px-4 py-3 text-center text-white rounded-xl font-bold shadow-lg transition-all hidden">
-                Confirm
-            </a>
-            <form id="modal-delete-form" method="post" class="flex-1 hidden">
-                <input type="hidden" name="_token" id="modal-delete-token">
-                <button type="submit" class="w-full px-4 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-200">
-                    Delete
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
-
-
-{# Image Modal #}
-<div id="image-modal" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-4 cursor-zoom-out" onclick="closeImageModal()">
-    <div class="relative max-w-4xl max-h-[90vh]">
-        <button class="absolute -top-12 right-0 text-white hover:text-gray-300 text-3xl font-bold">&times;</button>
-
-        <img id="maximized-image" src="" class="rounded-xl shadow-2xl border-4 border-white/10 max-w-full max-h-[85vh] object-contain mx-auto">
-
-        <p id="image-caption" class="text-white text-center mt-4 font-medium tracking-wide uppercase text-sm"></p>
-    </div>
-</div>
-
-
-{# Javascript for modals #}
 <script>
     function toggleMenu() {
         const menu = document.getElementById('mobile-menu');
         menu.classList.toggle('hidden');
     }
-
-    //Editing and deleting confirm modal
-    const modal = document.getElementById('confirm-modal');
-    const modalIcon = document.getElementById('modal-icon');
-    const modalIconBox = document.getElementById('modal-icon-container');
-    const modalTitle = document.getElementById('modal-title');
-    const modalDesc = document.getElementById('modal-description');
-    const confirmLink = document.getElementById('modal-confirm-btn');
-    const deleteForm = document.getElementById('modal-delete-form');
-
-    function openConfirmModal(type, url = '', token = '') {
-        const modal = document.getElementById('confirm-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalDesc = document.getElementById('modal-description');
-        const confirmBtn = document.getElementById('modal-confirm-btn');
-        const deleteForm = document.getElementById('modal-delete-form');
-
-        modal.classList.remove('hidden');
-
-        if (type === 'delete') {
-            modalTitle.innerText = "Confirm Delete";
-            modalDesc.innerText = "Are you sure? This product will be gone forever.";
-            confirmBtn.classList.add('hidden');
-            deleteForm.classList.remove('hidden');
-            deleteForm.setAttribute('action', url);
-            document.getElementById('modal-delete-token').value = token;
-        }
-        else {
-            // For CREATE or UPDATE
-            modalTitle.innerText = (type === 'create') ? "Create Product?" : "Update Product?";
-            modalDesc.innerText = "Check your details before saving to the database.";
-
-            deleteForm.classList.add('hidden');
-            confirmBtn.classList.remove('hidden');
-            confirmBtn.innerText = "Yes, Save it";
-            confirmBtn.className = "flex-1 px-4 py-3 text-center bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 cursor-pointer";
-
-            // When clicked, submit the actual form
-            confirmBtn.onclick = function() {
-                document.getElementById('product-form').submit();
-            };
-        }
-    }
-
-    function closeModal() {
-        modal.classList.add('hidden');
-    }
-
-    //Maximising product images modal
-    function maximizeImage(src) {
-        const modal = document.getElementById('image-modal');
-        const maxImg = document.getElementById('maximized-image');
-
-        maxImg.src = src;
-        modal.classList.remove('hidden');
-
-        // Prevent scrolling behind the modal
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeImageModal() {
-        const modal = document.getElementById('image-modal');
-        modal.classList.add('hidden');
-
-        // Re-enable scrolling
-        document.body.style.overflow = 'auto';
-    }
-
-    //Close on Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === "Escape") closeImageModal();
-    });
-
-
-
-    // Auto-hide flashes after 5 seconds globally
     setTimeout(() => {
         document.querySelectorAll('.animate-bounce-in').forEach(el => {
             el.style.transition = 'opacity 0.5s ease';
