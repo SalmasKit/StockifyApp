@@ -4,157 +4,67 @@ namespace App\Controller;
 
 use App\Entity\Category;
 use App\Entity\User;
+use App\Form\CategoryType;
+use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class CategoryController extends AbstractController
 {
-    #[Route('/category', name: 'app_category_index')]
-    public function index(EntityManagerInterface $entityManager): JsonResponse
+    #[Route('/category', name: 'app_category_index', methods: ['GET', 'POST'])]
+    public function index(Request $request, CategoryRepository $repository, EntityManagerInterface $em): Response
     {
-        $categories = $entityManager
-            ->getRepository(Category::class)
-            ->findAll();
-
-        $data = [];
-        foreach ($categories as $category) {
-            $data[] = [
-                'id' => $category->getId(),
-                'name' => $category->getName(),
-                'description' => $category->getDescription(),
-                'created_by_id' => $category->getCreatedBy() ? $category->getCreatedBy()->getId() : null,
-                'created_by_name' => $category->getCreatedBy() ? $category->getCreatedBy()->getName() : null,
-            ];
-        }
-
-        return new JsonResponse($data);
-    }
-
-
-    //////////////////////////Creation////////////////////////////////
-    #[Route('/category/create', name: 'app_category_create')]
-    public function createCategory(EntityManagerInterface $entityManager): JsonResponse
-    {
-        // Trouver l'utilisateur par son ID (ici on prend le premier)
-        $user = $entityManager->getRepository(User::class)->find(1);
-        if (!$user) {
-            return new JsonResponse([
-                'error' => 'User not found. Please create a user first.'
-            ], 404);
-        }
-
         $category = new Category();
-        $category->setName('Electronics');
-        $category->setDescription('Electronic devices and gadgets');
-        $category->setCreatedBy($user); // Passez l'objet User, pas un ID
+        $form = $this->createForm(CategoryType::class, $category);
+        $form->handleRequest($request);
 
-        $entityManager->persist($category);
-        $entityManager->flush();
+        if ($form->isSubmitted() && $form->isValid()) {
+            // set the loggedin user as the creator
+            $category->setCreatedBy($this->getUser());
 
-        return new JsonResponse([
-            'message' => 'Saved new Category',
-            'id' => $category->getId(),
-            'name' => $category->getName(),
-            'description' => $category->getDescription(),
-            'created_by_id' => $category->getCreatedBy()->getId(),
-            'created_by_name' => $category->getCreatedBy()->getName(),
+            $em->persist($category);
+            $em->flush();
+
+            $this->addFlash('success', 'Category created successfully!');
+            return $this->redirectToRoute('app_category_index');
+        }
+
+        return $this->render('category/categories_list.html.twig', [
+            'categories' => $repository->findAll(),
+            'form' => $form->createView(),
         ]);
     }
 
-    ////////////////////////////Displaying/////////////////////////////////
-    #[Route('/category/show/{id}', name: 'app_category_show')]
-    public function show(EntityManagerInterface $entityManager, int $id): JsonResponse
+    #[Route('/category/edit/{id}', name: 'app_category_edit', methods: ['POST'])]
+    public function editCategory(Request $request, Category $category, EntityManagerInterface $em): Response
     {
-        $category = $entityManager
-            ->getRepository(Category::class)
-            ->find($id);
+        $form = $this->createForm(CategoryType::class, $category);
+        $form->handleRequest($request);
 
-        if (!$category) {
-            return new JsonResponse([
-                'error' => 'Category not found'
-            ], 404);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+            $this->addFlash('success', 'Category updated successfully!');
         }
-
-        // products if necessary
-        $productsData = [];
-        foreach ($category->getProducts() as $product) {
-            $productsData[] = [
-                'id' => $product->getId(),
-                'name' => $product->getName(),
-                'price' => $product->getPrice(),
-            ];
-        }
-
-        return new JsonResponse([
-            'id' => $category->getId(),
-            'name' => $category->getName(),
-            'description' => $category->getDescription(),
-            'created_by_id' => $category->getCreatedBy() ? $category->getCreatedBy()->getId() : null,
-            'created_by_name' => $category->getCreatedBy() ? $category->getCreatedBy()->getName() : null,
-            'products_count' => count($productsData),
-            'products' => $productsData,
-        ]);
+        // Always return to the list
+        return $this->redirectToRoute('app_category_index');
     }
 
-    ////////////////////////////////Editing//////////////////////////////////////
-    #[Route('/category/edit/{id}', name: 'app_category_edit')]
-    public function editCategory(EntityManagerInterface $entityManager, int $id): JsonResponse
+    #[Route('/category/delete/{id}', name: 'app_category_delete', methods: ['POST'])]
+    public function deleteCategory(Request $request, Category $category, EntityManagerInterface $em): Response
     {
-        $category = $entityManager->getRepository(Category::class)->find($id);
-        if (!$category) {
-            return new JsonResponse([
-                'error' => 'Category not found'
-            ], 404);
+        if ($this->isCsrfTokenValid('delete'.$category->getId(), $request->request->get('_token'))) {
+            if ($category->getProducts()->count() > 0) {
+                $this->addFlash('warning', 'Category cannot be deleted: it contains products.');
+            } else {
+                $em->remove($category);
+                $em->flush();
+                $this->addFlash('success', 'Category deleted.');
+            }
         }
-
-
-        $user = $entityManager->getRepository(User::class)->find(2);
-        if (!$user) {
-            $user = $category->getCreatedBy();
-        }
-
-        $category->setName('Updated Category Name');
-        $category->setDescription('Updated description');
-        $category->setCreatedBy($user);
-
-        $entityManager->flush();
-
-        return new JsonResponse([
-            'message' => 'Category updated',
-            'id' => $category->getId(),
-            'name' => $category->getName(),
-            'description' => $category->getDescription(),
-            'created_by_id' => $category->getCreatedBy()->getId(),
-        ]);
+        return $this->redirectToRoute('app_category_index');
     }
-
-    ///////////////////////////Deleting///////////////////////////////////
-    #[Route('/category/delete/{id}', name: 'app_category_delete')]
-    public function deleteCategory(EntityManagerInterface $entityManager, int $id): JsonResponse
-    {
-        $category = $entityManager->getRepository(Category::class)->find($id);
-        if (!$category) {
-            return new JsonResponse([
-                'error' => 'Category not found'
-            ], 404);
-        }
-
-        // Vérifier s'il y a des produits associés
-        if ($category->getProducts()->count() > 0) {
-            return new JsonResponse([
-                'error' => 'Cannot delete category with associated products',
-                'products_count' => $category->getProducts()->count(),
-            ], 400);
-        }
-
-        $entityManager->remove($category);
-        $entityManager->flush();
-
-        return new JsonResponse([
-            'message' => 'Category deleted',
-            'id' => $id,
-        ]);
     }
-}
