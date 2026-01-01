@@ -76,6 +76,7 @@ final class ProductController extends AbstractController
             //Save button (runs Insert)
             $em->flush();
 
+            $this->addFlash('success', 'Product created successfully!');
             //redirection
             return $this->redirectToRoute('app_product_index');
         }
@@ -86,35 +87,6 @@ final class ProductController extends AbstractController
 
     }
 
-    ////////////////////////////Displaying/////////////////////////////////
-    #[Route('/product/show/{id}', name: 'app_product_show')]
-    public function show(EntityManagerInterface $entityManager, int $id): JsonResponse
-    {
-        $product = $entityManager
-            ->getRepository(Product::class)
-            ->find($id);
-
-        if (!$product) {
-            return new JsonResponse([
-                'error' => 'Product not found'
-            ], 404);
-        }
-
-        return new JsonResponse([
-            'id' => $product->getId(),
-            'name' => $product->getName(),
-            'description' => $product->getDescription(),
-            'price' => $product->getPrice(),
-            'quantity' => $product->getQuantity(),
-            'unit' => $product->getUnit(),
-            'image_url' => $product->getImageUrl(),
-            'created_at' => $product->getCreatedAt() ? $product->getCreatedAt()->format('Y-m-d H:i:s') : null,
-            'updated_at' => $product->getUpdatedAt() ? $product->getUpdatedAt()->format('Y-m-d H:i:s') : null,
-            'category_id' => $product->getCategory() ? $product->getCategory()->getId() : null,
-            'category_name' => $product->getCategory() ? $product->getCategory()->getName() : null,
-            'transactions_count' => $product->getTransactions()->count(),
-        ]);
-    }
 
     ////////////////////////////////Editing//////////////////////////////////////
     #[Route('/product/edit/{id}', name: 'app_product_edit')]
@@ -156,7 +128,7 @@ final class ProductController extends AbstractController
             }
         }
 
-        return $this->render('product/edit_product.html.twig', [
+        return $this->render('product/add_product.html.twig', [
             'form' => $form->createView(),
             'product' => $product
         ]);
