@@ -3,10 +3,9 @@
 {% block page_title %}Users{% endblock %}
 
 {% block body %}
-    {# Reduced py-8 to pt-2 pb-8 to bring the content closer to the header #}
-    <div class="max-w-6xl mx-auto pt-2 pb-8">
 
-        {# Header: Optimized spacing #}
+    <div class="max-w-6xl mx-auto pt-2 pb-8">
+        {# Header #}
         <div class="flex flex-col sm:flex-row justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 mb-5 shadow-sm">
             <div>
                 <h1 class="text-xl font-black text-slate-900 tracking-tight">User Management</h1>
@@ -54,18 +53,17 @@
                         </td>
                         <td class="py-4 px-6 text-right">
                             <div class="flex justify-end items-center gap-2">
+                                {% if user != app.user %}
+                                    <button onclick="openUserModal('delete', '{{ user.name }}', '{{ path('app_admin_user_delete', {id: user.id}) }}', '', '{{ csrf_token('delete' ~ user.id) }}')"
+                                            class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                {% endif %}
                                 <button onclick="openUserModal('toggle', '{{ user.name }}', '{{ path('app_admin_user_toggle', {id: user.id}) }}', '{{ user.isActive ? 'deactivate' : 'approve' }}')"
                                         class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all
                                         {{ user.isActive ? 'border-slate-200 text-slate-500 hover:bg-slate-100' : 'border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white' }}">
                                     {{ user.isActive ? 'Deactivate' : 'Approve' }}
                                 </button>
-
-                                {% if user != app.user %}
-                                    <button onclick="openUserModal('delete', '{{ user.name }}', '{{ path('app_admin_user_delete', {id: user.id}) }}', '', '{{ csrf_token('delete' ~ user.id) }}')"
-                                            class="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    </button>
-                                {% endif %}
                             </div>
                         </td>
                     </tr>

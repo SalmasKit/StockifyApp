@@ -37,7 +37,7 @@ final class ProductController extends AbstractController
 
         $sort = $request->query->get('sort', 'desc'); // Default newest first
 
-        // Association logic removed: Show all products to all authorized users
+        //  Show all products to all authorized users
         $products = $repository->findBy([], ['createdAt' => $sort]);
 
         return $this->render('product/products_list.html.twig', [

@@ -33,7 +33,7 @@ final class CategoryController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Track who created it (Audit trail)
+            // Track who created it
             $category->setCreatedBy($user);
 
             $em->persist($category);
@@ -44,7 +44,7 @@ final class CategoryController extends AbstractController
         }
 
         return $this->render('category/categories_list.html.twig', [
-            // Since it's one association, we show all categories to all active users
+            // we show all categories to all active users/work for same association
             'categories' => $repository->findAll(),
             'form' => $form->createView(),
         ]);

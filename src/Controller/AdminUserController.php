@@ -77,8 +77,7 @@ class AdminUserController extends AbstractController
         $user->setIsActive(true); // Admin-created users are active by default
         $user->setRoles(['ROLE_USER']);
 
-        // Set a temporary password (e.g., "Welcome123!")
-        // or you could make this a field in the modal
+        // Set a temporary password
         $hashedPassword = $hasher->hashPassword($user, 'Welcome123!');
         $user->setPassword($hashedPassword);
 
