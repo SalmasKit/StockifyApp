@@ -12,6 +12,11 @@ class SecurityController extends AbstractController
     #[Route(path: '/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
+        // If the user is already logged in, send them to the dashboard
+        if ($this->getUser()) {
+            return $this->redirectToRoute('app_dashboard'); // FIXED: added app_ prefix
+        }
+
         // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
 
@@ -23,7 +28,6 @@ class SecurityController extends AbstractController
             'error' => $error,
         ]);
     }
-
     #[Route(path: '/logout', name: 'app_logout')]
     public function logout(): void
     {

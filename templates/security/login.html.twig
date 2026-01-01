@@ -1,38 +1,49 @@
-{% extends 'base.html.twig' %}
+{% extends 'auth_layout.html.twig' %}
 
-{% block title %}Log in!{% endblock %}
+{% block title %}Connect - Stockify{% endblock %}
 
 {% block body %}
-    <form method="post">
+    <div class="mb-6">
+        <h2 class="text-2xl font-black text-slate-900 tracking-tight">Connect</h2>
+        <p class="text-slate-400 text-xs font-bold uppercase tracking-wide">Enter your credentials</p>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="mb-4 p-3 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-wider border border-emerald-100">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <form method="post" class="space-y-4">
         {% if error %}
-            <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+            <div class="p-3 bg-red-50 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-wider border border-red-100">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
         {% endif %}
 
-        {% if app.user %}
-            <div class="mb-3">
-                You are logged in as {{ app.user.userIdentifier }}, <a href="{{ logout_path() }}">Logout</a>
+        <div class="space-y-1">
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email</label>
+            <input type="email" value="{{ last_username }}" name="_username" class="w-full px-4 py-2.5 bg-white border-2 border-slate-200 focus:border-blue-600 rounded-xl transition-all outline-none text-sm font-bold text-slate-700 placeholder:text-slate-300"  required autofocus>
+        </div>
+
+        <div class="space-y-1">
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
+            <div class="relative">
+                <input type="password" name="_password" id="login_pass" class="w-full px-4 py-2.5 bg-white border-2 border-slate-200 focus:border-blue-600 rounded-xl transition-all outline-none text-sm font-bold text-slate-700 placeholder:text-slate-300 pr-12"  required>
+                <button type="button" onclick="togglePassword('login_pass', 'eye_login')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors">
+                    <svg id="eye_login" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                </button>
             </div>
-        {% endif %}
+        </div>
 
-        <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-        <label for="username">Email</label>
-        <input type="email" value="{{ last_username }}" name="_username" id="username" class="form-control" autocomplete="email" required autofocus>
-        <label for="password">Password</label>
-        <input type="password" name="_password" id="password" class="form-control" autocomplete="current-password" required>
-        <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-        {#
-            Uncomment this section and add a remember_me option below your firewall to activate remember me functionality.
-            See https://symfony.com/doc/current/security/remember_me.html
-
-            <div class="checkbox mb-3">
-                <input type="checkbox" name="_remember_me" id="_remember_me">
-                <label for="_remember_me">Remember me</label>
-            </div>
-        #}
-
-        <button class="btn btn-lg btn-primary" type="submit">
-            Sign in
+        <button type="submit" class="w-full py-3.5 bg-slate-900 hover:bg-blue-600 text-white text-[11px] font-black rounded-xl transition-all shadow-lg active:scale-95 uppercase tracking-[0.2em] mt-2">
+            Connect
         </button>
     </form>
+
+    <p class="mt-8 text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+        Need access? <a href="{{ path('app_register') }}" class="text-blue-600 hover:underline">Create Account</a>
+    </p>
 {% endblock %}
