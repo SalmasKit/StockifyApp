@@ -18,13 +18,13 @@ class Product
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    // --- ADD VALIDATION HERE ---
+    // --- VALIDATION not null + min 3 chars---
     #[Assert\NotBlank(message: "The product name is required.")]
     #[Assert\Length(min: 3, minMessage: "The name must be at least 3 characters long.")]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Assert\NotBlank(message: "Please provide a description.")]
+    //#[Assert\NotBlank(message: "Please provide a description.")]  //idk i feel like it can be null /not necessary
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]

@@ -10,11 +10,29 @@
                 <p class="text-slate-500 text-base font-medium">Monitor stock levels and manage your product catalog.</p>
             </div>
             <div class="flex items-center gap-3">
+                {# Button excel export #}
+                <a href="{{ path('app_product_export_excel', {sort: currentSort}) }}"
+                   class="inline-flex items-center px-4 py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-bold rounded-lg transition-all border border-emerald-100">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Export Excel
+                </a>
+                {# Button dropdown for sort #}
+                <div class="relative inline-block text-left">
+                    <select onchange="window.location.href='?sort=' + this.value"
+                            class="bg-white border-2 border-gray-100 text-slate-700 text-sm font-bold rounded-lg px-4 py-3 outline-none focus:border-blue-500 transition-all cursor-pointer shadow-sm">
+                        <option value="desc" {{ currentSort == 'desc' ? 'selected' : '' }}>Newest First</option>
+                        <option value="asc" {{ currentSort == 'asc' ? 'selected' : '' }}>Oldest First</option>
+                    </select>
+                </div>
+                {# Button toggle to multiple select #}
                 <button id="toggleSelectMode"
                         class="inline-flex items-center px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-lg transition-all active:scale-95">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <span id="selectModeText">Select Items</span>
                 </button>
+                {# Button Add prod #}
                 <a href="{{ path('app_product_create') }}"
                    class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg shadow-lg shadow-blue-100 transition-all transform active:scale-95 group">
                     <svg class="w-5 h-5 mr-2 text-white/80 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">

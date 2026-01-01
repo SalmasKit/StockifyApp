@@ -21,8 +21,12 @@ class ProductType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
        $builder
-           ->add('name', TextType::class)
-           ->add('description', TextareaType::class)
+           ->add('name', TextType::class, [
+               'attr' => ['placeholder' => 'Enter product name']
+           ])
+           ->add('description', TextareaType::class, [
+               'attr' => ['placeholder' => 'Enter product description']
+           ])
            ->add('price', MoneyType::class, [
                'currency' => 'MAD',
                'html5' => true,
@@ -35,22 +39,41 @@ class ProductType extends AbstractType
                'attr' => ['min' => 0] // HTML5 number picker
            ])
            ->add('unit', ChoiceType::class, [
-               'choices'  => [
-                   'Grams (g)' => 'g',
-                   'Kilograms (kg)' => 'kg',
-                   'Liters (l)' => 'l',
-                   'Meters (m)' => 'm',
-                   'Centimeters (cm)' => 'cm',
-                   'Hours (h)' => 'h',
-                   'Pieces (piece)' => 'piece',
+               'placeholder' => 'Choose a unit',
+               'choices' => [
+                   'Weight' => [
+                       'Grams (g)' => 'g',
+                       'Kilograms (kg)' => 'kg',
+                   ],
+                   'Volume' => [
+                       'Milliliters (ml)' => 'ml',
+                       'Liters (l)' => 'l',
+                   ],
+                   'Length' => [
+                       'Millimeters (mm)' => 'mm',
+                       'Centimeters (cm)' => 'cm',
+                       'Meters (m)' => 'm',
+                   ],
+                   'Time' => [
+                       'Seconds (s)' => 's',
+                       'Minutes (min)' => 'min',
+                       'Hours (h)' => 'h',
+                   ],
+                   'Count' => [
+                       'Pieces (pcs)' => 'pcs',
+                       'Boxes' => 'box',
+                       'Packs' => 'pack',
+                   ],
                ],
            ])
+
            ->add('image', FileType::class, [
                'label' => 'Product Image',
                'mapped' => false,
                'required' => false,
            ])
            ->add('category', EntityType::class, [
+               'placeholder' => 'Choose a category',
                'class' => Category::class,
                'choice_label' => 'name',
            ]);
