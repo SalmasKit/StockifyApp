@@ -28,13 +28,17 @@ final class ProductController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
+
+        // Security Check: Only approved users can see products
+        if (!$user->isActive()) {
+            $this->addFlash('warning', 'Your account is pending administrator approval.');
+            return $this->redirectToRoute('app_login');
+        }
+
         $sort = $request->query->get('sort', 'desc'); // Default newest first
 
-        // Filter by Association so users only see their team's products
-        $products = $repository->findBy(
-            ['association' => $user->getAssociation()],
-            ['createdAt' => $sort]
-        );
+        // Association logic removed: Show all products to all authorized users
+        $products = $repository->findBy([], ['createdAt' => $sort]);
 
         return $this->render('product/products_list.html.twig', [
             'products' => $products,
@@ -48,53 +52,39 @@ final class ProductController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
+
+        if (!$user->isActive()) {
+            throw $this->createAccessDeniedException('Account inactive.');
+        }
+
         $product = new Product();
-
-        //symfony maps form fields to $product
-        //connect to form class(creating form)
         $form = $this->createForm(ProductType::class, $product);
-
-        //inspect $_POST data(handling req)
         $form->handleRequest($request);
 
-        //validation check
         if($form->isSubmitted() && $form->isValid()) {
-            //handle image upload
             /** @var Symfony\Component\HttpFoundation\File\UploadedFile $imageFile */
             $imageFile = $form->get('image')->getData();
 
             if ($imageFile) {
-                // Generate a unique name for the file
                 $newFilename = uniqid().'.'.$imageFile->guessExtension();
-
-                // Move the file to the directory
                 $imageFile->move(
                     $this->getParameter('kernel.project_dir') . '/public/uploads/products',
                     $newFilename
                 );
-
-                // 2. Save the filename string to the database
                 $product->setImageUrl($newFilename);
             }
 
-            //manual data entry (cuz it isn t a field in the form / it will be autom. set)
             $product->setCreatedAt(new \DateTime());
             $product->setUpdatedAt(new \DateTime());
-
-            // Set association and creator based on logged in user
             $product->setCreatedBy($user);
-            $product->setAssociation($user->getAssociation());
 
-            //to db manager: hey keep eye on this obj i want to save it
             $em->persist($product);
-
-            //Save button (runs Insert)
             $em->flush();
 
             $this->addFlash('success', 'Product created successfully!');
-            //redirection
             return $this->redirectToRoute('app_product_index');
         }
+
         return $this->render('product/add_product.html.twig', [
             'form' => $form->createView(),
             'product' => $product,
@@ -106,9 +96,11 @@ final class ProductController extends AbstractController
     #[Route('/product/edit/{id}', name: 'app_product_edit')]
     public function editProduct(Request $request, Product $product, EntityManagerInterface $em): Response
     {
-        // Security check: ensure product belongs to user's association
-        if ($product->getAssociation() !== $this->getUser()->getAssociation()) {
-            throw $this->createAccessDeniedException('Unauthorized access to this product.');
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$user->isActive()) {
+            throw $this->createAccessDeniedException();
         }
 
         $form = $this->createForm(ProductType::class, $product);
@@ -118,7 +110,6 @@ final class ProductController extends AbstractController
             try {
                 $imageFile = $form->get('image')->getData();
 
-                // Handle Image Upload
                 if ($imageFile) {
                     if ($product->getImageUrl()) {
                         $this->deleteImage($product->getImageUrl());
@@ -132,11 +123,7 @@ final class ProductController extends AbstractController
                     $product->setImageUrl($newFilename);
                 }
 
-                // Always update the timestamp
                 $product->setUpdatedAt(new \DateTime());
-
-                // call flush. Doctrine will automatically detect if
-                // Name, Price, Quantity, etc., actually changed.
                 $em->flush();
 
                 $this->addFlash('success', 'Product updated successfully!');
@@ -158,28 +145,21 @@ final class ProductController extends AbstractController
     #[Route('/product/delete/{id}', name: 'app_product_delete')]
     public function deleteProduct(Request $request, Product $product, EntityManagerInterface $em): Response
     {
-        // Security check: ensure product belongs to user's association
-        if ($product->getAssociation() !== $this->getUser()->getAssociation()) {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$user->isActive()) {
             throw $this->createAccessDeniedException();
         }
 
-        //Security check: Verify the CSRF token to prevent malicious deletions
         if($this->isCsrfTokenValid('delete'.$product->getId(), $request->get('_token'))){
-
-            //can t delete product used in transactions
             if($product->getTransactions()->count() > 0){
                 $this->addFlash('warning', 'Product cannot be deleted because it has transactions');
             }else{
-
-                //1.delete img file
                 if ($product->getImageUrl()) {
                     $this->deleteImage($product->getImageUrl());
                 }
-
-                //2.remove entity
                 $em->remove($product);
-
-                //3.flush db
                 $em->flush();
                 $this->addFlash('success', 'Product deleted successfully!');
             }
@@ -187,33 +167,27 @@ final class ProductController extends AbstractController
         return $this->redirectToRoute('app_product_index');
     }
 
-
-
-    /////////////////////Bulk delete : used when checkbox selectioon////////////
+    /////////////////////Bulk delete///////////////////////////////////
     #[Route('/product/bulk-delete', name: 'app_product_bulk_delete', methods: ['POST'])]
     public function bulkDelete(Request $request, EntityManagerInterface $em): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
+
+        if (!$user->isActive()) {
+            throw $this->createAccessDeniedException();
+        }
+
         $idsString = $request->request->get('ids');
         if ($idsString) {
             $ids = explode(',', $idsString);
-
-            // Security: Find products by ID AND association to prevent deleting other people's data
-            $products = $em->getRepository(Product::class)->findBy([
-                'id' => $ids,
-                'association' => $user->getAssociation()
-            ]);
+            $products = $em->getRepository(Product::class)->findBy(['id' => $ids]);
 
             foreach ($products as $product) {
-                // 1.skip prods w transactions
                 if ($product->getTransactions()->count() === 0) {
                     if ($product->getImageUrl()) {
-
-                        //2.delete image
-                        $this->deleteImage($product->getImageUrl()); // Using our cleanup method
+                        $this->deleteImage($product->getImageUrl());
                     }
-
-                    //3.remove entity
                     $em->remove($product);
                 }
             }
@@ -224,17 +198,17 @@ final class ProductController extends AbstractController
         return $this->redirectToRoute('app_product_index');
     }
 
-
     /////////////////////////////toggle stock status(AJAX)///////////////
     #[Route('/product/toggle-stock/{id}', name: 'app_product_toggle_stock', methods: ['POST'])]
     public function toggleStock(Product $product, EntityManagerInterface $em): JsonResponse
     {
-        // Security check
-        if ($product->getAssociation() !== $this->getUser()->getAssociation()) {
-            return new JsonResponse(['success' => false, 'message' => 'Forbidden'], 403);
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$user->isActive()) {
+            return new JsonResponse(['success' => false, 'message' => 'Account inactive'], 403);
         }
 
-        // Logic: if stock set to 0 |if 0 set to 1, used for switch buttons
         $currentQty = (float)$product->getQuantity();
         $newQty = $currentQty > 0 ? 0 : 1;
 
@@ -256,21 +230,18 @@ final class ProductController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        // 1. Get filters from the URL (Search, Sort, etc.)
-        $sort = $request->query->get('sort', 'desc');
+        if (!$user->isActive()) {
+            die("Unauthorized"); // Simple block for export
+        }
 
-        // Filter by current Association for Excel Export
-        $products = $repository->findBy(
-            ['association' => $user->getAssociation()],
-            ['createdAt' => $sort]
-        );
+        $sort = $request->query->get('sort', 'desc');
+        $products = $repository->findBy([], ['createdAt' => $sort]);
 
         $response = new StreamedResponse(function() use ($products) {
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            $sheet->setTitle('Product Inventory');
+            $sheet->setTitle('Inventory');
 
-            // 2. Define Headers
             $headers = ['ID', 'Photo', 'Product Name', 'Description', 'Category', 'Price (MAD)', 'Quantity', 'Date Added'];
             $columnLetter = 'A';
             foreach ($headers as $header) {
@@ -278,28 +249,12 @@ final class ProductController extends AbstractController
                 $columnLetter++;
             }
 
-            // Style Headers (Bold and Gray Background)
             $sheet->getStyle('A1:H1')->getFont()->setBold(true);
-            $sheet->getStyle('A1:H1')->getFill()
-                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('F1F5F9');
 
-            // 3. Set Column Widths
-            $sheet->getColumnDimension('B')->setWidth(15); // Photo
-            $sheet->getColumnDimension('C')->setWidth(25); // Name
-            $sheet->getColumnDimension('D')->setWidth(40); // Description
-            $sheet->getColumnDimension('E')->setWidth(25);
-            $sheet->getColumnDimension('F')->setWidth(25);
-            $sheet->getColumnDimension('G')->setWidth(25);
-            $sheet->getColumnDimension('H')->setWidth(25);
-            $sheet->getStyle('D')->getAlignment()->setWrapText(true); // Wrap long descriptions
-
-            // 4. Fill Data
             $row = 2;
-            $sequenceNumber = 1; // Initialize the counter at 1
+            $sequenceNumber = 1;
 
             foreach ($products as $product) {
-                // Text data
                 $sheet->setCellValue('A' . $row, $sequenceNumber);
                 $sheet->setCellValue('C' . $row, $product->getName());
                 $sheet->setCellValue('D' . $row, $product->getDescription());
@@ -308,51 +263,33 @@ final class ProductController extends AbstractController
                 $sheet->setCellValue('G' . $row, $product->getQuantity());
                 $sheet->setCellValue('H' . $row, $product->getCreatedAt() ? $product->getCreatedAt()->format('Y-m-d') : '');
 
-                // 5. Handle Image Embedding
                 if ($product->getImageUrl()) {
                     $imagePath = $this->getParameter('kernel.project_dir') . '/public/uploads/products/' . $product->getImageUrl();
-
                     if (file_exists($imagePath)) {
                         $drawing = new Drawing();
-                        $drawing->setName($product->getName());
                         $drawing->setPath($imagePath);
-                        $drawing->setHeight(50); // Resize image to 50px height
-                        $drawing->setCoordinates('B' . $row); // Column B is the Photo column
-                        $drawing->setOffsetX(10); // Center the image slightly
-                        $drawing->setOffsetY(5);
+                        $drawing->setHeight(50);
+                        $drawing->setCoordinates('B' . $row);
                         $drawing->setWorksheet($sheet);
-
-                        // Increase row height to fit the image properly
                         $sheet->getRowDimension($row)->setRowHeight(45);
                     }
-                } else {
-                    $sheet->setCellValue('B' . $row, 'No Image');
                 }
-
-                // Align all text to the top so it looks good next to the image
-                $sheet->getStyle('A' . $row . ':H' . $row)
-                    ->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
-
                 $row++;
-                $sequenceNumber++; // Increment the counter for the next product
+                $sequenceNumber++;
             }
 
             $writer = new Xlsx($spreadsheet);
             $writer->save('php://output');
         });
 
-        // 6. Set Response Headers for Download
-        $fileName = 'inventory_' . $user->getAssociation()->getName() . '_' . date('Y-m-d_Hi') . '.xlsx';
+        $fileName = 'inventory_' . date('Y-m-d') . '.xlsx';
         $disposition = HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $fileName);
-
         $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         $response->headers->set('Content-Disposition', $disposition);
 
         return $response;
     }
 
-    ////////////////////////Helper methods//////////////////////////////
-    /// Methode to delete images when image product is deleted/updated
     private function deleteImage(string $fileName): void
     {
         $path = $this->getParameter('kernel.project_dir') . '/public/uploads/products/' . $fileName;
@@ -360,5 +297,4 @@ final class ProductController extends AbstractController
             unlink($path);
         }
     }
-
 }

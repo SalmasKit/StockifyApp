@@ -21,16 +21,20 @@ final class CategoryController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $association = $user->getAssociation();
+
+        // 1. Simple Security: If admin hasn't activated the user, block them
+        if (!$user->isActive()) {
+            $this->addFlash('warning', 'Your account is pending administrator approval.');
+            return $this->redirectToRoute('app_login');
+        }
 
         $category = new Category();
         $form = $this->createForm(CategoryType::class, $category);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Logic: Tie category to the specific user AND their association
+            // Track who created it (Audit trail)
             $category->setCreatedBy($user);
-            $category->setAssociation($association);
 
             $em->persist($category);
             $em->flush();
@@ -40,8 +44,8 @@ final class CategoryController extends AbstractController
         }
 
         return $this->render('category/categories_list.html.twig', [
-            // Only show categories belonging to the logged-in user's association
-            'categories' => $repository->findBy(['association' => $association]),
+            // Since it's one association, we show all categories to all active users
+            'categories' => $repository->findAll(),
             'form' => $form->createView(),
         ]);
     }
@@ -52,9 +56,9 @@ final class CategoryController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        // Security: Prevent editing categories from other associations
-        if ($category->getAssociation() !== $user->getAssociation()) {
-            throw $this->createAccessDeniedException('You cannot edit this category.');
+        // Check activation
+        if (!$user->isActive()) {
+            throw $this->createAccessDeniedException('Account inactive.');
         }
 
         $form = $this->createForm(CategoryType::class, $category);
@@ -74,9 +78,8 @@ final class CategoryController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        // Security: Prevent deleting categories from other associations
-        if ($category->getAssociation() !== $user->getAssociation()) {
-            throw $this->createAccessDeniedException('You cannot delete this category.');
+        if (!$user->isActive()) {
+            throw $this->createAccessDeniedException();
         }
 
         if ($this->isCsrfTokenValid('delete'.$category->getId(), $request->request->get('_token'))) {

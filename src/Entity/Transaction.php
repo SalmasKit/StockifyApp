@@ -58,12 +58,12 @@ class Transaction
 
     public function getProduct(): ?Product
     {
-        return $this->prooduct;
+        return $this->product;
     }
 
-    public function setProduct(?Product $prooduct): static
+    public function setProduct(?Product $product): static
     {
-        $this->prooduct = $prooduct;
+        $this->product = $product;
 
         return $this;
     }

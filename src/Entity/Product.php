@@ -61,9 +61,6 @@ class Product
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'prooduct')]
     private Collection $transactions;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Association $association = null;
 
     #[ORM\ManyToOne(inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false)]
@@ -217,17 +214,6 @@ class Product
         return $this;
     }
 
-    public function getAssociation(): ?Association
-    {
-        return $this->association;
-    }
-
-    public function setAssociation(?Association $association): static
-    {
-        $this->association = $association;
-
-        return $this;
-    }
 
     public function getCreatedBy(): ?User
     {

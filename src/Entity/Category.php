@@ -33,9 +33,7 @@ class Category
     #[ORM\OneToMany(targetEntity: Product::class, mappedBy: 'category')]
     private Collection $products;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Association $association = null;
+
 
     public function __construct()
     {
@@ -113,15 +111,5 @@ class Category
         return $this;
     }
 
-    public function getAssociation(): ?Association
-    {
-        return $this->association;
-    }
 
-    public function setAssociation(?Association $association): static
-    {
-        $this->association = $association;
-
-        return $this;
-    }
 }
