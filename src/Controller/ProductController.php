@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Entity\Category;
+use App\Entity\User;
 use App\Form\ProductType;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -17,14 +18,23 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\ProductRepository;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_USER')]
 final class ProductController extends AbstractController
 {
     #[Route('/product', name: 'app_product_index')]
     public function index(Request $request, ProductRepository $repository): Response
     {
+        /** @var User $user */
+        $user = $this->getUser();
         $sort = $request->query->get('sort', 'desc'); // Default newest first
-        $products = $repository->findBy([], ['createdAt' => $sort]);
+
+        // Filter by Association so users only see their team's products
+        $products = $repository->findBy(
+            ['association' => $user->getAssociation()],
+            ['createdAt' => $sort]
+        );
 
         return $this->render('product/products_list.html.twig', [
             'products' => $products,
@@ -36,15 +46,16 @@ final class ProductController extends AbstractController
     #[Route('/product/create', name: 'app_product_create')]
     public function createProduct(Request $request, EntityManagerInterface $em): Response
     {
+        /** @var User $user */
+        $user = $this->getUser();
         $product = new Product();
 
-     //symfony maps form fields to $product
+        //symfony maps form fields to $product
         //connect to form class(creating form)
         $form = $this->createForm(ProductType::class, $product);
 
         //inspect $_POST data(handling req)
         $form->handleRequest($request);
-
 
         //validation check
         if($form->isSubmitted() && $form->isValid()) {
@@ -70,6 +81,10 @@ final class ProductController extends AbstractController
             $product->setCreatedAt(new \DateTime());
             $product->setUpdatedAt(new \DateTime());
 
+            // Set association and creator based on logged in user
+            $product->setCreatedBy($user);
+            $product->setAssociation($user->getAssociation());
+
             //to db manager: hey keep eye on this obj i want to save it
             $em->persist($product);
 
@@ -84,7 +99,6 @@ final class ProductController extends AbstractController
             'form' => $form->createView(),
             'product' => $product,
         ]);
-
     }
 
 
@@ -92,6 +106,11 @@ final class ProductController extends AbstractController
     #[Route('/product/edit/{id}', name: 'app_product_edit')]
     public function editProduct(Request $request, Product $product, EntityManagerInterface $em): Response
     {
+        // Security check: ensure product belongs to user's association
+        if ($product->getAssociation() !== $this->getUser()->getAssociation()) {
+            throw $this->createAccessDeniedException('Unauthorized access to this product.');
+        }
+
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
 
@@ -139,6 +158,11 @@ final class ProductController extends AbstractController
     #[Route('/product/delete/{id}', name: 'app_product_delete')]
     public function deleteProduct(Request $request, Product $product, EntityManagerInterface $em): Response
     {
+        // Security check: ensure product belongs to user's association
+        if ($product->getAssociation() !== $this->getUser()->getAssociation()) {
+            throw $this->createAccessDeniedException();
+        }
+
         //Security check: Verify the CSRF token to prevent malicious deletions
         if($this->isCsrfTokenValid('delete'.$product->getId(), $request->get('_token'))){
 
@@ -169,10 +193,16 @@ final class ProductController extends AbstractController
     #[Route('/product/bulk-delete', name: 'app_product_bulk_delete', methods: ['POST'])]
     public function bulkDelete(Request $request, EntityManagerInterface $em): Response
     {
+        $user = $this->getUser();
         $idsString = $request->request->get('ids');
         if ($idsString) {
             $ids = explode(',', $idsString);
-            $products = $em->getRepository(Product::class)->findBy(['id' => $ids]);
+
+            // Security: Find products by ID AND association to prevent deleting other people's data
+            $products = $em->getRepository(Product::class)->findBy([
+                'id' => $ids,
+                'association' => $user->getAssociation()
+            ]);
 
             foreach ($products as $product) {
                 // 1.skip prods w transactions
@@ -199,6 +229,11 @@ final class ProductController extends AbstractController
     #[Route('/product/toggle-stock/{id}', name: 'app_product_toggle_stock', methods: ['POST'])]
     public function toggleStock(Product $product, EntityManagerInterface $em): JsonResponse
     {
+        // Security check
+        if ($product->getAssociation() !== $this->getUser()->getAssociation()) {
+            return new JsonResponse(['success' => false, 'message' => 'Forbidden'], 403);
+        }
+
         // Logic: if stock set to 0 |if 0 set to 1, used for switch buttons
         $currentQty = (float)$product->getQuantity();
         $newQty = $currentQty > 0 ? 0 : 1;
@@ -218,10 +253,17 @@ final class ProductController extends AbstractController
     #[Route('/product/export/excel', name: 'app_product_export_excel')]
     public function exportExcel(Request $request, ProductRepository $repository): StreamedResponse
     {
+        /** @var User $user */
+        $user = $this->getUser();
+
         // 1. Get filters from the URL (Search, Sort, etc.)
         $sort = $request->query->get('sort', 'desc');
-        // can add more filters
-        $products = $repository->findBy([], ['createdAt' => $sort]);
+
+        // Filter by current Association for Excel Export
+        $products = $repository->findBy(
+            ['association' => $user->getAssociation()],
+            ['createdAt' => $sort]
+        );
 
         $response = new StreamedResponse(function() use ($products) {
             $spreadsheet = new Spreadsheet();
@@ -300,7 +342,7 @@ final class ProductController extends AbstractController
         });
 
         // 6. Set Response Headers for Download
-        $fileName = 'inventory_' . date('Y-m-d_Hi') . '.xlsx';
+        $fileName = 'inventory_' . $user->getAssociation()->getName() . '_' . date('Y-m-d_Hi') . '.xlsx';
         $disposition = HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $fileName);
 
         $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
