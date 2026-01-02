@@ -15,6 +15,34 @@ class TransactionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Transaction::class);
     }
+    public function findByFilters(?string $categoryId, ?string $startDate, ?string $endDate, ?string $search = null): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->join('t.product', 'p')
+            ->addSelect('p')
+            ->orderBy('t.createdAt', 'DESC');
+
+        // Category Filter
+        if ($categoryId && $categoryId !== 'all') {
+            $qb->andWhere('p.category = :cat')->setParameter('cat', $categoryId);
+        }
+
+        // NEW: Search Filter (Case-insensitive name search)
+        if ($search) {
+            $qb->andWhere('p.name LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        // Date Filters
+        if ($startDate) {
+            $qb->andWhere('t.createdAt >= :start')->setParameter('start', new \DateTime($startDate . ' 00:00:00'));
+        }
+        if ($endDate) {
+            $qb->andWhere('t.createdAt <= :end')->setParameter('end', new \DateTime($endDate . ' 23:59:59'));
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 
     //    /**
     //     * @return Transaction[] Returns an array of Transaction objects

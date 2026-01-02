@@ -4,126 +4,31 @@ namespace App\Controller;
 
 use App\Entity\Transaction;
 use App\Entity\Product;
+use App\Repository\CategoryRepository;
+use App\Repository\TransactionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class TransactionController extends AbstractController
 {
-    #[Route('/transaction', name: 'app_transaction_index')]
-    public function index(EntityManagerInterface $entityManager): JsonResponse
+    #[Route('/transactions', name: 'app_transaction_index')]
+    public function index(Request $request, TransactionRepository $trxRepo, CategoryRepository $catRepo): Response
     {
-        $transactions = $entityManager
-            ->getRepository(Transaction::class)
-            ->findAll();
+        $search = $request->query->get('search'); // <--- Capture the search input
+        $categoryId = $request->query->get('category');
+        $startDate = $request->query->get('start_date');
+        $endDate = $request->query->get('end_date');
 
-        $data = [];
-        foreach ($transactions as $transaction) {
-            $data[] = [
-                'id' => $transaction->getId(),
-                'type' => $transaction->getType(),
-                'quantity' => $transaction->getQuantity(),
-                'created_at' => $transaction->getCreatedAt()->format('Y-m-d H:i:s'),
-                'product_id' => $transaction->getProduct() ? $transaction->getProduct()->getId() : null,
-            ];
-        }
-
-        return new JsonResponse($data);
-    }
-
-    //////////////////////////Creation////////////////////////////////
-    #[Route('/transaction/create', name: 'app_transaction_create')]
-    public function createTransaction(EntityManagerInterface $entityManager): JsonResponse
-    {
-        $product = $entityManager->getRepository(Product::class)->find(2);
-        if (!$product) {
-            return new JsonResponse([
-                'error' => 'Product not found'
-            ], 404);
-        }
-
-        $transaction = new Transaction();
-        $transaction->setType('in');
-        $transaction->setQuantity(5);
-        $transaction->setCreatedAt(new \DateTime());
-        $transaction->setProduct($product);
-
-        $entityManager->persist($transaction);
-        $entityManager->flush();
-
-        return new JsonResponse([
-            'message' => 'Saved new Transaction',
-            'id' => $transaction->getId(),
-            'type' => $transaction->getType(),
-            'quantity' => $transaction->getQuantity(),
-            'product_id' => $transaction->getProduct()->getId(),
-        ]);
-    }
-
-    ////////////////////////////Displaying/////////////////////////////////
-    #[Route('/transaction/show/{id}', name: 'app_transaction_show')]
-    public function show(EntityManagerInterface $entityManager, int $id): JsonResponse
-    {
-        $transaction = $entityManager
-            ->getRepository(Transaction::class)
-            ->find($id);
-
-        if (!$transaction) {
-            return new JsonResponse([
-                'error' => 'Transaction not found'
-            ], 404);
-        }
-
-        return new JsonResponse([
-            'id' => $transaction->getId(),
-            'type' => $transaction->getType(),
-            'quantity' => $transaction->getQuantity(),
-            'created_at' => $transaction->getCreatedAt()->format('Y-m-d H:i:s'),
-            'product_id' => $transaction->getProduct() ? $transaction->getProduct()->getId() : null,
-        ]);
-    }
-
-    ////////////////////////////////Editing//////////////////////////////////////
-    #[Route('/transaction/edit/{id}', name: 'app_transaction_edit')]
-    public function editTransaction(EntityManagerInterface $entityManager, int $id): JsonResponse
-    {
-        $transaction = $entityManager->getRepository(Transaction::class)->find($id);
-        if (!$transaction) {
-            return new JsonResponse([
-                'error' => 'Transaction not found'
-            ], 404);
-        }
-
-        $transaction->setQuantity(10);
-        $transaction->setType('out');
-        $entityManager->flush();
-
-        return new JsonResponse([
-            'message' => 'Transaction updated',
-            'id' => $transaction->getId(),
-            'quantity' => $transaction->getQuantity(),
-            'type' => $transaction->getType(),
-        ]);
-    }
-
-    ///////////////////////////Deleting///////////////////////////////////
-    #[Route('/transaction/delete/{id}', name: 'app_transaction_delete')]
-    public function deleteTransaction(EntityManagerInterface $entityManager, int $id): JsonResponse
-    {
-        $transaction = $entityManager->getRepository(Transaction::class)->find($id);
-        if (!$transaction) {
-            return new JsonResponse([
-                'error' => 'Transaction not found'
-            ], 404);
-        }
-
-        $entityManager->remove($transaction);
-        $entityManager->flush();
-
-        return new JsonResponse([
-            'message' => 'Transaction deleted',
-            'id' => $id,
+        return $this->render('transaction/transactions.html.twig', [
+            'transactions' => $trxRepo->findByFilters($categoryId, $startDate, $endDate, $search),
+            'categories' => $catRepo->findAll(),
+            'currentCat' => $categoryId,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
         ]);
     }
 }

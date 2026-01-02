@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Entity\Transaction;
 
 class DonationController extends AbstractController
 {
@@ -40,15 +41,26 @@ class DonationController extends AbstractController
                 return new Response("Insufficient stock for " . $product->getName(), 400);
             }
 
-            if ($askedQty <= 0) {
-                return new Response("Invalid quantity for " . $product->getName(), 400);
-            }
+            if ($askedQty <= 0) continue;
 
+            // 1. Update Product Stock
             $product->setQuantity($currentQty - $askedQty);
             $product->setUpdatedAt(new \DateTime());
+
+            // 2. RECORD THE TRANSACTION
+            $transaction = new Transaction();
+            $transaction->setProduct($product);
+            $transaction->setQuantity($askedQty);
+            $transaction->setType('DONATION'); // This string must match your Twig logic
+            $transaction->setCreatedAt(new \DateTime());
+
+            // 3. Persist the new row
+            $em->persist($transaction);
         }
 
+        // 4. Save everything to Database
         $em->flush();
+
         return new Response("Success", 200);
     }
 }
