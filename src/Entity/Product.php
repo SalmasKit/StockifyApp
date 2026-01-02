@@ -58,7 +58,7 @@ class Product
     /**
      * @var Collection<int, Transaction>
      */
-    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'prooduct')]
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'product')]
     private Collection $transactions;
 
 
@@ -196,7 +196,7 @@ class Product
     {
         if (!$this->transactions->contains($transaction)) {
             $this->transactions->add($transaction);
-            $transaction->setProoduct($this);
+            $transaction->setProduct($this);
         }
 
         return $this;
@@ -206,8 +206,8 @@ class Product
     {
         if ($this->transactions->removeElement($transaction)) {
             // set the owning side to null (unless already changed)
-            if ($transaction->getProoduct() === $this) {
-                $transaction->setProoduct(null);
+            if ($transaction->getProduct() === $this) {
+                $transaction->setProduct(null);
             }
         }
 

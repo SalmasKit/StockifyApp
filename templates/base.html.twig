@@ -124,12 +124,6 @@
     </aside>
 
     <div class="flex-1 flex flex-col">
-        <header class="bg-white shadow-sm p-4 px-8 border-b">
-            <h1 class="text-xl font-bold text-gray-800 uppercase tracking-tight">
-                {% block page_title %}{% endblock %}
-            </h1>
-        </header>
-
         <main class="p-4 md:p-8">
             {% block body %}{% endblock %}
         </main>
@@ -149,5 +143,7 @@
         });
     }, 5000);
 </script>
+
+{% block javascripts %}{% endblock %}
 </body>
 </html>

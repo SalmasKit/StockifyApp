@@ -16,6 +16,21 @@ class ProductRepository extends ServiceEntityRepository
         parent::__construct($registry, Product::class);
     }
 
+
+    public function findBySearchTerm(string $term, string $sort): array
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.category', 'c') // Allow searching by category name too
+            ->where('p.name LIKE :term')
+            ->orWhere('p.description LIKE :term')
+            ->orWhere('c.name LIKE :term')
+            ->setParameter('term', '%' . $term . '%')
+            ->orderBy('p.createdAt', $sort)
+            ->getQuery()
+            ->getResult();
+    }
+
+
     //    /**
     //     * @return Product[] Returns an array of Product objects
     //     */

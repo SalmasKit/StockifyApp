@@ -22,7 +22,7 @@ class Transaction
 
     #[ORM\ManyToOne(inversedBy: 'transactions')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Product $prooduct = null;
+    private ?Product $product = null;
 
     #[ORM\Column]
     private ?\DateTime $createdAt = null;

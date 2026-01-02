@@ -230,18 +230,29 @@ final class ProductController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        if (!$user->isActive()) {
-            die("Unauthorized"); // Simple block for export
+        // Security check
+        if (!$user || !$user->isActive()) {
+            throw $this->createAccessDeniedException("Unauthorized access to export.");
         }
 
+        // 1. Get filters from the Request (sent by your JavaScript)
         $sort = $request->query->get('sort', 'desc');
-        $products = $repository->findBy([], ['createdAt' => $sort]);
+        $searchTerm = $request->query->get('q');
+
+        // 2. Fetch data: Filtered or Full List
+        if (!empty($searchTerm)) {
+            // We use a custom method in the repository to handle the search logic
+            $products = $repository->findBySearchTerm($searchTerm, $sort);
+        } else {
+            $products = $repository->findBy([], ['createdAt' => $sort]);
+        }
 
         $response = new StreamedResponse(function() use ($products) {
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            $sheet->setTitle('Inventory');
+            $sheet->setTitle('Inventory Export');
 
+            // Headers
             $headers = ['ID', 'Photo', 'Product Name', 'Description', 'Category', 'Price (MAD)', 'Quantity', 'Date Added'];
             $columnLetter = 'A';
             foreach ($headers as $header) {
@@ -249,41 +260,60 @@ final class ProductController extends AbstractController
                 $columnLetter++;
             }
 
+            // Style the header row
             $sheet->getStyle('A1:H1')->getFont()->setBold(true);
+            $sheet->getStyle('A1:H1')->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('F1F5F9');
 
             $row = 2;
             $sequenceNumber = 1;
 
             foreach ($products as $product) {
                 $sheet->setCellValue('A' . $row, $sequenceNumber);
+                // Column B is reserved for the image
                 $sheet->setCellValue('C' . $row, $product->getName());
                 $sheet->setCellValue('D' . $row, $product->getDescription());
-                $sheet->setCellValue('E' . $row, $product->getCategory() ? $product->getCategory()->getName() : 'N/A');
+                $sheet->setCellValue('E' . $row, $product->getCategory() ? $product->getCategory()->getName() : 'Unassigned');
                 $sheet->setCellValue('F' . $row, $product->getPrice());
                 $sheet->setCellValue('G' . $row, $product->getQuantity());
                 $sheet->setCellValue('H' . $row, $product->getCreatedAt() ? $product->getCreatedAt()->format('Y-m-d') : '');
 
+                // Handle Product Image
                 if ($product->getImageUrl()) {
                     $imagePath = $this->getParameter('kernel.project_dir') . '/public/uploads/products/' . $product->getImageUrl();
                     if (file_exists($imagePath)) {
-                        $drawing = new Drawing();
+                        $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+                        $drawing->setName($product->getName());
                         $drawing->setPath($imagePath);
                         $drawing->setHeight(50);
                         $drawing->setCoordinates('B' . $row);
                         $drawing->setWorksheet($sheet);
+
+                        // Make row taller to fit the image nicely
                         $sheet->getRowDimension($row)->setRowHeight(45);
                     }
                 }
+
                 $row++;
                 $sequenceNumber++;
             }
 
-            $writer = new Xlsx($spreadsheet);
+            // Set auto-size for columns for better readability
+            foreach (range('A', 'H') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
             $writer->save('php://output');
         });
 
-        $fileName = 'inventory_' . date('Y-m-d') . '.xlsx';
-        $disposition = HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $fileName);
+        $fileName = 'inventory_export_' . date('Y-m-d_His') . '.xlsx';
+        $disposition = \Symfony\Component\HttpFoundation\HeaderUtils::makeDisposition(
+            \Symfony\Component\HttpFoundation\HeaderUtils::DISPOSITION_ATTACHMENT,
+            $fileName
+        );
+
         $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         $response->headers->set('Content-Disposition', $disposition);
 

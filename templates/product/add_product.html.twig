@@ -78,7 +78,31 @@
         {{ form_end(form) }}
     </div>
 
+    {# --- CONFIRMATION MODAL --- #}
+    <div id="confirm-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden transform transition-all">
+            <div class="p-8 text-center">
+                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 id="modal-title" class="text-xl font-bold text-slate-900 mb-2">Confirm Action</h3>
+                <p id="modal-desc" class="text-sm text-slate-500">Are you sure you want to save these product changes?</p>
+            </div>
+            <div class="p-4 bg-slate-50 flex gap-3">
+                <button type="button" onclick="closeConfirmModal()" class="flex-1 px-4 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-100 transition-all">
+                    Cancel
+                </button>
+                <button type="button" onclick="submitProductForm()" class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // 1. Image Preview Logic
         function updatePreview(event) {
             const reader = new FileReader();
             reader.onload = function() {
@@ -86,7 +110,39 @@
                 preview.src = reader.result;
                 preview.classList.remove('hidden');
             };
-            reader.readAsDataURL(event.target.files[0]);
+            if(event.target.files[0]) {
+                reader.readAsDataURL(event.target.files[0]);
+            }
+        }
+
+        // 2. Open Modal Logic (The missing function)
+        function openConfirmModal(actionType) {
+            const modal = document.getElementById('confirm-modal');
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+
+            if (actionType === 'create') {
+                title.innerText = "Create Product";
+                desc.innerText = "Are you sure you want to add this new product to the inventory?";
+            } else {
+                title.innerText = "Update Product";
+                desc.innerText = "Are you sure you want to save the changes made to this product?";
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // 3. Close Modal Logic
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // 4. Final Submit Logic
+        function submitProductForm() {
+            document.getElementById('product-form').submit();
         }
     </script>
 {% endblock %}
