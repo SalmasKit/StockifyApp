@@ -6,25 +6,40 @@
     <div class="max-w-7xl mx-auto px-6 py-10 antialiased">
 
         {# --- GLASS HEADER --- #}
-        <div class="relative overflow-hidden bg-slate-900 rounded-[3rem] p-10 mb-12 shadow-2xl shadow-slate-900/20 border border-slate-800">
-            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"></div>
-            <div class="relative flex flex-col lg:flex-row justify-between items-center gap-8">
-                <div class="flex items-center gap-8">
+        {# --- ALIGNED RESTOCK CENTER HEADER --- #}
+        <div class="relative overflow-hidden bg-slate-900 rounded-[2.5rem] p-8 mb-8 shadow-2xl shadow-slate-900/30 border border-slate-800">
+            {# Matching the blur size and placement (w-80 h-80) #}
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl"></div>
+
+            <div class="relative flex flex-col lg:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-6">
                     <div>
-                        <h1 class="text-4xl font-black text-white tracking-tight mb-2">Restock Center</h1>
-                        <div class="flex items-center gap-3">
-                            <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
-                            <p class="text-slate-400 font-bold uppercase text-[11px] tracking-[0.3em]">Master Inventory Management</p>
+                        {# Matching text-3xl and tracking #}
+                        <h1 class="text-3xl font-black text-white tracking-tight mb-1">Restock Center</h1>
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            {# Matching text-[9px] and tracking #}
+                            <p class="text-slate-400 font-bold uppercase text-[9px] tracking-[0.3em]">Master Inventory Management</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="relative w-full md:w-96 group">
-                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-slate-500 group-focus-within:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"/></svg>
+                <div class="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+                    {# Matching the search bar container width (sm:w-72) and height (py-3) #}
+                    <div class="relative w-full sm:w-72 group">
+                        <input type="text" id="restockSearch" onkeyup="filterProducts()" placeholder="Filter catalog..."
+                               class="w-full pl-11 pr-4 py-3 bg-slate-800/50 border-2 border-slate-700 focus:border-emerald-500/50 focus:bg-slate-800 rounded-xl outline-none transition-all font-bold text-white placeholder:text-slate-500 shadow-2xl text-xs">
+                        {# Matching the SVG placement (left-4 top-3.5) #}
+                        <svg class="w-4 h-4 text-slate-500 absolute left-4 top-3.5 group-focus-within:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"/>
+                        </svg>
                     </div>
-                    <input type="text" id="restockSearch" onkeyup="filterProducts()" placeholder="Filter catalog..."
-                           class="w-full pl-14 pr-8 py-5 bg-slate-800/50 border-2 border-slate-700 focus:border-emerald-500/50 focus:bg-slate-800 rounded-[2rem] outline-none transition-all font-bold text-white placeholder:text-slate-500 shadow-2xl">
+
+                    {# Added a button if needed, or you can remove this block if you only want the search bar #}
+                    <div class="hidden lg:block w-px h-8 bg-slate-800 mx-2"></div>
+                    <span class="hidden lg:block text-[9px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+                Live Status
+            </span>
                 </div>
             </div>
         </div>

@@ -5,29 +5,45 @@
 {% block body %}
     <div class="max-w-[1600px] mx-auto px-6 py-10 antialiased">
 
-        {# --- SAPPHIRE HEADER --- #}
-        <div class="relative overflow-hidden bg-slate-900 rounded-[3rem] p-10 mb-10 shadow-2xl shadow-slate-900/30 border border-slate-800">
+        {# --- ALIGNED DONATION PORTAL HEADER --- #}
+        <div class="relative overflow-hidden bg-slate-900 rounded-[2.5rem] p-8 mb-8 shadow-2xl shadow-slate-900/30 border border-slate-800">
             <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
-            <div class="relative flex flex-col lg:flex-row justify-between items-center gap-8">
-                <div class="flex items-center gap-8">
+
+            <div class="relative flex flex-col lg:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/40 border-t border-white/20 hidden sm:flex">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
                     <div>
-                        <h1 class="text-4xl font-black text-white tracking-tight mb-2">Donation Portal</h1>
-                        <div id="error-toast" class="hidden text-red-400 font-bold uppercase text-[10px] tracking-widest animate-pulse">
-                            ⚠️ Error: Insufficient Inventory
+                        <h1 class="text-3xl font-black text-white tracking-tight mb-1">Donation Portal</h1>
+                        <div class="flex items-center gap-2">
+                            <div id="error-toast" class="hidden text-red-400 font-black uppercase text-[9px] tracking-widest animate-pulse">
+                                ⚠️ Error: Insufficient Inventory
+                            </div>
+                            <p id="default-subtitle" class="text-slate-400 font-bold uppercase text-[9px] tracking-[0.3em]">Distribution & Relief Logistics</p>
                         </div>
-                        <p id="default-subtitle" class="text-slate-400 font-bold uppercase text-[11px] tracking-[0.3em]">Distribution & Relief Logistics</p>
                     </div>
                 </div>
 
-                <div class="relative w-full md:w-96 group">
-                    <input type="text" id="productSearch" onkeyup="filterProducts()" placeholder="Search inventory..."
-                           class="w-full pl-14 pr-8 py-5 bg-slate-800/50 border-2 border-slate-700 focus:border-blue-500/50 focus:bg-slate-800 rounded-[2rem] outline-none transition-all font-bold text-white placeholder:text-slate-500 shadow-2xl">
-                    <svg class="w-5 h-5 text-slate-500 absolute left-5 top-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"/></svg>
+                <div class="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+                    <div class="relative w-full sm:w-72 group">
+                        <input type="text" id="productSearch" onkeyup="filterProducts()" placeholder="Search inventory..."
+                               class="w-full pl-11 pr-4 py-3 bg-slate-800/50 border-2 border-slate-700 focus:border-blue-500/50 focus:bg-slate-800 rounded-xl outline-none transition-all font-bold text-white placeholder:text-slate-500 shadow-2xl text-xs">
+                        <svg class="w-4 h-4 text-slate-500 absolute left-4 top-3.5 group-focus-within:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="hidden lg:block w-px h-8 bg-slate-800 mx-2"></div>
+                    <span class="hidden lg:block text-[9px] font-black text-blue-500 uppercase tracking-widest bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20">
+                        Relief Mode
+                    </span>
                 </div>
             </div>
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-10 h-[70vh]">
+        <div class="flex flex-col lg:flex-row gap-10 h-[75vh]">
 
             {# --- LEFT: SELECTION CATALOG --- #}
             <div class="w-full lg:w-2/5 flex flex-col bg-white rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
@@ -38,7 +54,6 @@
 
                 <div class="flex-grow overflow-y-auto p-6 space-y-4 custom-scrollbar" id="productList">
                     {% for product in products %}
-                        {# Card stays visible, but glows blue when hovered #}
                         <div class="product-item group flex items-center p-5 rounded-[2.5rem] border-2 border-slate-50 bg-white hover:border-blue-100 hover:bg-blue-50/20 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
                              onclick="addToManifest(this.dataset)"
                              data-id="{{ product.id }}"
@@ -52,9 +67,9 @@
                                      class="h-full w-full rounded-[1.8rem] object-cover shadow-sm border-2 border-white group-hover:scale-105 transition-transform duration-500">
                                 {% if product.quantity < 5 %}
                                     <span class="absolute -top-1 -right-1 flex h-4 w-4">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
-                                </span>
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+                                    </span>
                                 {% endif %}
                             </div>
 
@@ -75,10 +90,10 @@
             </div>
 
             {# --- RIGHT: DONATION MANIFEST --- #}
-            <div class="w-full lg:w-3/5 flex flex-col bg-white rounded-[3.5rem] border border-slate-100 shadow-2xl shadow-slate-200/60 overflow-hidden">
-                <div class="flex-grow overflow-x-auto custom-scrollbar">
+            <div class="w-full lg:w-3/5 flex flex-col bg-white rounded-[3.5rem] border border-slate-100 shadow-2xl shadow-slate-200/60 overflow-hidden relative">
+                <div class="flex-grow overflow-x-auto custom-scrollbar relative">
                     <table class="w-full text-left border-collapse">
-                        <thead>
+                        <thead class="sticky top-0 z-10 bg-white">
                         <tr class="bg-slate-50/50 border-b border-slate-100">
                             <th class="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Item Description</th>
                             <th class="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Qty to Give</th>
@@ -90,27 +105,32 @@
                         </tbody>
                     </table>
 
-                    <div id="emptyTableState" class="py-40 text-center">
-                        <div class="inline-flex items-center justify-center w-24 h-24 rounded-[2.5rem] bg-slate-50 mb-6">
-                            <svg class="w-12 h-12 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 12H4" stroke-width="3" stroke-linecap="round"/></svg>
+                    {# --- ENHANCED CENTERED EMPTY STATE --- #}
+                    <div id="emptyTableState" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-0 pointer-events-none">
+                        <div class="group relative">
+                            <div class="absolute inset-0 bg-slate-100 rounded-[2.5rem] blur-2xl group-hover:bg-blue-100 transition-colors duration-500"></div>
+                            <div class="relative inline-flex items-center justify-center w-28 h-28 rounded-[2.5rem] bg-slate-50 border border-slate-100 shadow-inner mb-6">
+                                <svg class="w-12 h-12 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
                         </div>
-                        <p class="text-slate-400 font-black uppercase text-[11px] tracking-[0.3em]">Manifest is empty</p>
+                        <p class="text-slate-900 font-black uppercase text-[12px] tracking-[0.4em]">Manifest Empty</p>
+                        <p class="text-slate-400 font-bold uppercase text-[9px] tracking-widest mt-2">Select items from the catalog to begin</p>
                     </div>
                 </div>
 
-                {# --- FOOTER ACTION BAR (Clean White Design) --- #}
+                {# --- FOOTER ACTION BAR --- #}
                 <div class="p-10 bg-white border-t border-slate-100 flex items-center justify-between">
                     <div class="flex items-center gap-6">
-                        <div class="relative">
-                            <div id="manifestBadge" class="relative w-14 h-14 bg-slate-900 text-white flex items-center justify-center rounded-2xl text-xl font-black shadow-lg">0</div>
-                        </div>
+                        <div id="manifestBadge" class="relative w-14 h-14 bg-slate-900 text-white flex items-center justify-center rounded-2xl text-xl font-black shadow-lg shadow-slate-900/20 transition-all duration-300">0</div>
                         <div>
                             <p class="text-slate-900 font-black uppercase text-[12px] tracking-widest">Selected Batch</p>
                             <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest">Ready for distribution</p>
                         </div>
                     </div>
-                    <button onclick="openConfirmModal()"
-                            class="px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-[2rem] shadow-xl shadow-blue-200 uppercase text-[12px] tracking-[0.2em] transition-all active:scale-95">
+                    <button id="finalizeBtn" onclick="openConfirmModal()"
+                            class="px-12 py-5 bg-slate-100 text-slate-400 cursor-not-allowed font-black rounded-[2rem] uppercase text-[11px] tracking-[0.2em] transition-all">
                         Finalize Distribution
                     </button>
                 </div>
@@ -166,10 +186,18 @@
             const body = document.getElementById('manifestBody');
             const emptyState = document.getElementById('emptyTableState');
             const badge = document.getElementById('manifestBadge');
+            const finalizeBtn = document.getElementById('finalizeBtn');
 
             body.innerHTML = '';
             badge.innerText = manifest.length;
-            emptyState.classList.toggle('hidden', manifest.length > 0);
+
+            if (manifest.length > 0) {
+                emptyState.classList.add('hidden');
+                finalizeBtn.className = "px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-[2rem] shadow-xl shadow-blue-200 uppercase text-[11px] tracking-[0.2em] transition-all active:scale-95";
+            } else {
+                emptyState.classList.remove('hidden');
+                finalizeBtn.className = "px-12 py-5 bg-slate-100 text-slate-400 cursor-not-allowed font-black rounded-[2rem] uppercase text-[11px] tracking-[0.2em] transition-all";
+            }
 
             manifest.forEach(item => {
                 body.innerHTML += `

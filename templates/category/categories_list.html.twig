@@ -1,133 +1,152 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Categories{% endblock %}
-{% block page_title %}Categories List{% endblock %}
+{% block title %}Categories Catalog{% endblock %}
 
 {% block body %}
-    <div class="max-w-7xl mx-auto px-4">
-        {# Header Section #}
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-            <div>
-                <p class="text-slate-500 text-base font-medium">Manage your categories and catalog organization.</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="openAddModal()"
-                        class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg shadow-lg shadow-blue-100 transition-all transform active:scale-95 group">
-                    <svg class="w-5 h-5 mr-2 text-white/80 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Add New Category
-                </button>
+    <div class="max-w-7xl mx-auto px-6 py-10 antialiased">
+
+        {# --- SAPPHIRE HEADER --- #}
+        <div class="relative overflow-hidden bg-slate-900 rounded-[2.5rem] p-8 mb-8 shadow-2xl shadow-slate-900/30 border border-slate-800">
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
+            <div class="relative flex flex-col lg:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-6">
+                    <div>
+                        <h1 class="text-3xl font-black text-white tracking-tight mb-1">Categories</h1>
+                        <p class="text-slate-400 font-bold uppercase text-[9px] tracking-[0.3em]">Organization & Inventory Hierarchy</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+                    <div class="relative w-full sm:w-72 group">
+                        <input type="text" id="tableSearch" placeholder="Search..."
+                               class="w-full pl-11 pr-4 py-3 bg-slate-800/50 border-2 border-slate-700 focus:border-blue-500/50 focus:bg-slate-800 rounded-xl outline-none transition-all font-bold text-white placeholder:text-slate-500 shadow-2xl text-xs">
+                        <svg class="w-4 h-4 text-slate-500 absolute left-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"/></svg>
+                    </div>
+                    <button onclick="openAddModal()"
+                            class="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl shadow-xl shadow-blue-500/20 uppercase text-[10px] tracking-[0.2em] transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="3" stroke-linecap="round"/></svg>
+                        New Category
+                    </button>
+                </div>
             </div>
         </div>
 
         {% if categories|length > 0 %}
-            {# Live Search - Only show if categories exist #}
-            <div class="mb-6 relative">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2" stroke-linecap="round"/></svg>
-                </div>
-                <input type="text" id="tableSearch"
-                       class="block w-full pl-11 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all outline-none text-sm font-medium"
-                       placeholder="Search categories...">
-            </div>
-
-            {# Grid Section #}
-            <div id="categoryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {# --- COMPACT CATEGORY GRID (4 PER LINE) --- #}
+            <div id="categoryGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                 {% for category in categories %}
-                    <div class="category-card group bg-white rounded-[2rem] border-2 border-gray-100 p-6 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-300 relative">
-                        {# Actions #}
-                        <div class="absolute top-6 right-6 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button type="button" onclick="openEditModal('{{ category.id }}', '{{ category.name|escape('js') }}', '{{ category.description|escape('js') }}')" class="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <div class="category-card group bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1.5 transition-all duration-300 relative">
+
+                        {# Compact Floating Actions #}
+                        <div class="absolute top-5 right-5 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all transform scale-90 group-hover:scale-100">
+                            <button onclick="openEditModal('{{ category.id }}', '{{ category.name|escape('js') }}', '{{ category.description|escape('js') }}')"
+                                    class="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-white border border-transparent hover:border-slate-100 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="2.5" stroke-linecap="round"/></svg>
                             </button>
-                            <button type="button" onclick="openDeleteModal('{{ path('app_category_delete', {id: category.id}) }}', '{{ csrf_token('delete' ~ category.id) }}')" class="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <button onclick="openDeleteModal('{{ path('app_category_delete', {id: category.id}) }}', '{{ csrf_token('delete' ~ category.id) }}')"
+                                    class="p-2 bg-slate-50 text-slate-400 hover:text-red-500 rounded-lg hover:bg-white border border-transparent hover:border-slate-100 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2.5" stroke-linecap="round"/></svg>
                             </button>
                         </div>
 
                         <div class="flex flex-col h-full">
-                            <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white mb-4 shadow-lg shadow-blue-100 uppercase font-black">
-                                {{ category.name|slice(0, 1) }}
+                            <div class="w-12 h-12 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center text-lg font-black mb-4 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-blue-200 transition-all duration-300">
+                                {{ category.name|slice(0, 1)|upper }}
                             </div>
-                            <h3 class="category-name text-2xl font-black text-slate-800 mb-2 pr-16">{{ category.name }}</h3>
-                            <p class="category-description text-slate-500 text-sm font-medium leading-relaxed mb-6 flex-grow">
-                                {{ category.description ?: 'No description provided.' }}
+
+                            <h3 class="category-name text-lg font-black text-slate-800 mb-1 tracking-tight group-hover:text-blue-600 transition-colors uppercase truncate">{{ category.name }}</h3>
+
+                            <p class="category-description text-slate-500 text-[11px] font-semibold leading-relaxed mb-6 line-clamp-2">
+                                {{ category.description ?: 'No detailed description available.' }}
                             </p>
-                            <div class="pt-4 border-t border-gray-50 flex items-center justify-between">
-                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">{{ category.products|length }} Products</span>
-                                <a href="{{ path('app_product_index', {'category': category.id}) }}" class="text-blue-600 text-xs font-bold hover:underline">View Catalog &rarr;</a>
+
+                            <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.1em]">{{ category.products|length }} Items</span>
+                                </div>
+                                <a href="{{ path('app_product_index', {'category': category.id}) }}" class="flex items-center gap-1.5 text-blue-600 text-[9px] font-black uppercase tracking-widest hover:gap-2 transition-all">
+                                    View <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 8l4 4m0 0l-4 4m4-4H3" stroke-width="3" stroke-linecap="round"/></svg>
+                                </a>
                             </div>
                         </div>
                     </div>
                 {% endfor %}
             </div>
 
-            {# Empty Search Result State (Hidden by default) #}
-            <div id="noSearchResults" class="hidden py-20 text-center">
-                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-50 mb-4">
-                    <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2" stroke-linecap="round"/></svg>
+            {# --- SEARCH EMPTY STATE --- #}
+            <div id="noSearchResults" class="hidden py-32 text-center">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-[2rem] bg-slate-50 mb-6">
+                    <svg class="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2" stroke-linecap="round"/></svg>
                 </div>
-                <h3 class="text-xl font-bold text-slate-700">No matching categories</h3>
-                <p class="text-slate-400 text-sm">Try adjusting your search terms.</p>
+                <h3 class="text-lg font-black text-slate-800 uppercase tracking-widest">No Matches</h3>
+                <p class="text-slate-400 font-bold text-[10px] uppercase mt-2">Try a different search term</p>
             </div>
 
         {% else %}
-            {# Empty Database State #}
-            <div class="py-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-200">
-                <div class="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-blue-50 text-blue-600 mb-6">
-                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                    </svg>
+            {# --- DATABASE EMPTY STATE --- #}
+            <div class="py-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-100">
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-blue-50 text-blue-600 mb-8">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                 </div>
-                <h3 class="text-2xl font-black text-slate-800 mb-2">Your Catalog is Empty</h3>
-                <p class="text-slate-500 mb-8 max-w-sm mx-auto">Get started by creating your first category to organize your products.</p>
+                <h3 class="text-2xl font-black text-slate-900 mb-3 tracking-tight uppercase">Empty Repository</h3>
+                <p class="text-slate-500 text-sm font-medium mb-10 max-w-sm mx-auto">Categorize your inventory to optimize the donation and restock flows.</p>
+                <button onclick="openAddModal()" class="px-8 py-4 bg-slate-900 text-white font-black rounded-2xl uppercase text-[10px] tracking-widest hover:bg-blue-600 transition-all">Create Category</button>
             </div>
         {% endif %}
 
-        {# Modals (Stay the same) #}
-        <div id="categoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
-            <div class="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden transform transition-all">
-                <div class="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-slate-50/50">
-                    <h3 id="modalTitle" class="text-xl font-black text-slate-800 uppercase tracking-tight">Add New Category</h3>
-                    <button type="button" onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600 p-2">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round"/></svg>
+        {# --- MODAL: ADD/EDIT --- #}
+        <div id="categoryModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[200] hidden items-center justify-center p-6">
+            <div class="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden border border-white">
+                <div class="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                    <h3 id="modalTitle" class="text-xl font-black text-slate-900 uppercase tracking-tight">Manage Category</h3>
+                    <button onclick="closeCategoryModal()" class="w-10 h-10 flex items-center justify-center bg-white text-slate-400 hover:text-red-500 rounded-xl shadow-sm transition-all border border-slate-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="3" stroke-linecap="round"/></svg>
                     </button>
                 </div>
-                <div class="p-8">
+                <div class="p-10">
                     {{ form_start(form, {'attr': {'id': 'categoryForm'}}) }}
                     <div class="space-y-6">
                         <div>
-                            {{ form_label(form.name, null, {'label_attr': {'class': 'block text-sm font-bold text-slate-700 mb-2'}}) }}
-                            {{ form_widget(form.name, {'attr': {'class': 'w-full border-2 border-gray-100 rounded-2xl px-4 py-3 focus:border-blue-500 outline-none'}}) }}
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-2">Category Name</label>
+                            {{ form_widget(form.name, {'attr': {'class': 'w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl px-5 py-3.5 outline-none font-bold text-slate-800 transition-all text-sm'}}) }}
                         </div>
                         <div>
-                            {{ form_label(form.description, null, {'label_attr': {'class': 'block text-sm font-bold text-slate-700 mb-2'}}) }}
-                            {{ form_widget(form.description, {'attr': {'rows': '3', 'class': 'w-full border-2 border-gray-100 rounded-2xl px-4 py-3 focus:border-blue-500 outline-none'}}) }}
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-2">Description / Purpose</label>
+                            {{ form_widget(form.description, {'attr': {'rows': '3', 'class': 'w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl px-5 py-3.5 outline-none font-bold text-slate-800 transition-all text-sm'}}) }}
                         </div>
-                        <button type="submit" class="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl hover:bg-blue-700 transition-all mt-4 uppercase">Save Category</button>
+                        <button type="submit" class="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all uppercase text-[11px] tracking-[0.2em]">Save Category</button>
                     </div>
                     {{ form_end(form) }}
                 </div>
             </div>
         </div>
 
-        {# Delete Modal (Stay the same) #}
-        <div id="deleteConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] hidden items-center justify-center p-4">
-            <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden p-8 text-center">
-                <div class="w-20 h-20 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        {# --- MODAL: DELETE CONFIRM --- #}
+        <div id="deleteConfirmModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-xl z-[250] hidden items-center justify-center p-6">
+            <div class="bg-white w-full max-w-md rounded-[3rem] p-10 text-center border border-white">
+                <div class="w-20 h-20 bg-red-50 text-red-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </div>
-                <h3 class="text-2xl font-black text-slate-800 mb-2">Are you sure?</h3>
-                <p class="text-slate-500 mb-8">This action cannot be undone.</p>
-                <form id="deleteForm" method="POST" class="flex gap-3">
+                <h3 class="text-2xl font-black text-slate-900 mb-3 tracking-tight">Remove Category?</h3>
+                <p class="text-slate-500 text-sm font-semibold mb-8 leading-relaxed px-4">Associated products will become uncategorized.</p>
+                <form id="deleteForm" method="POST" class="flex flex-col gap-3">
                     <input type="hidden" name="_token" id="deleteCsrfToken">
-                    <button type="button" onclick="closeDeleteModal()" class="flex-1 py-4 bg-slate-100 text-slate-600 font-bold rounded-2xl hover:bg-slate-200 transition-all">Cancel</button>
-                    <button type="submit" class="flex-1 py-4 bg-red-600 text-white font-black rounded-2xl shadow-xl shadow-red-100 hover:bg-red-700 transition-all">Delete</button>
+                    <button type="submit" class="w-full py-5 bg-red-600 text-white font-black rounded-xl shadow-xl shadow-red-100 hover:bg-red-700 transition-all uppercase text-[10px] tracking-widest">Delete Registry</button>
+                    <button type="button" onclick="closeDeleteModal()" class="w-full py-5 text-slate-400 hover:text-slate-900 font-black rounded-xl transition-all uppercase text-[9px] tracking-widest">Cancel</button>
                 </form>
             </div>
         </div>
     </div>
+
+    <style>
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
 
     <script>
         const catModal = document.getElementById('categoryModal');
@@ -139,42 +158,36 @@
         }
 
         function openAddModal() {
-            document.getElementById('modalTitle').innerText = "ADD NEW CATEGORY";
+            document.getElementById('modalTitle').innerText = "REGISTER CATEGORY";
             catForm.action = "{{ path('app_category_index') }}";
             catForm.reset();
-            catModal.classList.remove('hidden');
-            catModal.classList.add('flex');
+            catModal.classList.replace('hidden', 'flex');
         }
 
         function openEditModal(id, name, description) {
-            document.getElementById('modalTitle').innerText = "EDIT CATEGORY";
+            document.getElementById('modalTitle').innerText = "MODIFY CATEGORY";
             catForm.action = "/category/edit/" + id;
             const nameInput = getFormField('name');
             const descInput = getFormField('description');
             if (nameInput) nameInput.value = name;
             if (descInput) descInput.value = description;
-            catModal.classList.remove('hidden');
-            catModal.classList.add('flex');
+            catModal.classList.replace('hidden', 'flex');
         }
 
         function closeCategoryModal() {
-            catModal.classList.add('hidden');
-            catModal.classList.remove('flex');
+            catModal.classList.replace('flex', 'hidden');
         }
 
         function openDeleteModal(url, token) {
             document.getElementById('deleteForm').action = url;
             document.getElementById('deleteCsrfToken').value = token;
-            delModal.classList.remove('hidden');
-            delModal.classList.add('flex');
+            delModal.classList.replace('hidden', 'flex');
         }
 
         function closeDeleteModal() {
-            delModal.classList.add('hidden');
-            delModal.classList.remove('flex');
+            delModal.classList.replace('flex', 'hidden');
         }
 
-        // UPDATED SEARCH LOGIC
         const searchInput = document.getElementById('tableSearch');
         if (searchInput) {
             searchInput.addEventListener('input', function(e) {
@@ -184,7 +197,7 @@
                 let visibleCount = 0;
 
                 cards.forEach(card => {
-                    const text = card.innerText.toLowerCase();
+                    const text = card.querySelector('.category-name').innerText.toLowerCase();
                     if (text.includes(term)) {
                         card.style.display = 'block';
                         visibleCount++;
@@ -193,12 +206,7 @@
                     }
                 });
 
-                // Show/Hide "No Search Results" message
-                if (visibleCount === 0) {
-                    noResults.classList.remove('hidden');
-                } else {
-                    noResults.classList.add('hidden');
-                }
+                visibleCount === 0 ? noResults.classList.remove('hidden') : noResults.classList.add('hidden');
             });
         }
 

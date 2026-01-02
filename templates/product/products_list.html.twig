@@ -1,226 +1,220 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Products{% endblock %}
-{% block page_title %}Products List{% endblock %}
+{% block title %}Products Catalog{% endblock %}
 
 {% block body %}
-    <div class="max-w-7xl mx-auto px-4 pb-20">
-        {# Header Section #}
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
-            <div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight mb-2">Inventory</h1>
-                <p class="text-slate-500 text-lg font-medium">Manage and track your product catalog.</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-3">
-                <a href="{{ path('app_product_export_excel', {sort: currentSort}) }}"
-                   class="inline-flex items-center px-5 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-2xl transition-all shadow-lg shadow-emerald-200 active:scale-95">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    Export
-                </a>
+    <div class="max-w-7xl mx-auto px-6 py-10 antialiased">
 
-                <button id="toggleSelectMode"
-                        class="inline-flex items-center px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-2xl transition-all active:scale-95">
-                    <span id="selectModeText">Select Items</span>
-                </button>
+        {# --- ALIGNED INVENTORY HEADER --- #}
+        <div class="relative overflow-hidden bg-slate-900 rounded-[2.5rem] p-8 mb-8 shadow-2xl shadow-slate-900/30 border border-slate-800">
+            {# Aligned Blur: w-80 h-80 #}
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
 
-                <a href="{{ path('app_product_create') }}"
-                   class="inline-flex items-center px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-2xl shadow-xl shadow-blue-200 transition-all transform active:scale-95 group">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                    Add Product
-                </a>
-            </div>
-        </div>
-
-        {# REFINED SEARCH & SORT SECTION #}
-        <div class="bg-white rounded-[2.5rem] border-2 border-slate-100 p-6 mb-8 shadow-sm">
-            <div class="flex flex-col md:flex-row gap-4 items-center">
-                {# Search Input #}
-                <div class="relative flex-1 w-full group">
-                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <div class="relative flex flex-col lg:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-6">
+                    {# Sapphire Icon Block: Matching Dashboard Dimensions #}
+                    <div>
+                        {# Aligned Typography: text-3xl / text-[9px] #}
+                        <h1 class="text-3xl font-black text-white tracking-tight mb-1">Inventory</h1>
+                        <p class="text-slate-400 font-bold uppercase text-[9px] tracking-[0.3em]">Live Product Stock & Catalog</p>
                     </div>
-                    <input type="text" id="tableSearch"
-                           class="block w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-blue-500 rounded-2xl transition-all outline-none text-base font-semibold placeholder:text-slate-400"
-                           placeholder="Search products...">
                 </div>
 
-                {# Sort Dropdown #}
-                <div class="relative w-full md:w-64">
-                    <select onchange="window.location.href='?sort=' + this.value"
-                            class="appearance-none w-full bg-slate-50 border-2 border-transparent hover:border-slate-200 text-slate-700 text-sm font-bold rounded-2xl px-5 py-4 pr-10 outline-none focus:bg-white focus:border-blue-500 transition-all cursor-pointer">
-                        <option value="desc" {{ currentSort == 'desc' ? 'selected' : '' }}>Newest Added</option>
-                        <option value="asc" {{ currentSort == 'asc' ? 'selected' : '' }}>Oldest Added</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </div>
+                <div class="flex flex-wrap items-center justify-center lg:justify-end gap-3 w-full lg:w-auto">
+                    {# Export Button: Aligned py-3 #}
+                    <a href="{{ path('app_product_export_excel', {sort: currentSort}) }}" id="exportBtn"
+                       class="inline-flex items-center px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-black rounded-xl transition-all uppercase tracking-widest border border-slate-700">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Export
+                    </a>
+
+                    {# Select Mode Button: Using Aligned Glass Style #}
+                    <button id="toggleSelectMode"
+                            class="inline-flex items-center px-5 py-3 bg-white/5 hover:bg-white/10 text-white text-[10px] font-black rounded-xl transition-all uppercase tracking-widest border border-white/10">
+                        <span id="selectModeText">Select Items</span>
+                    </button>
+
+                    {# Add Product Button: Aligned py-3 #}
+                    <a href="{{ path('app_product_create') }}"
+                       class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black rounded-xl shadow-xl shadow-blue-500/20 transition-all active:scale-95 uppercase tracking-widest">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Add Product
+                    </a>
                 </div>
             </div>
         </div>
 
-        {# TABLE SECTION #}
-        <div class="bg-white rounded-[2.5rem] border-2 border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                    <tr class="bg-slate-50/80 backdrop-blur-sm border-b-2 border-slate-100">
-                        <th id="checkboxHeader" class="transition-all duration-300" style="width: 0; opacity: 0; overflow: hidden; padding: 0;">
-                            <div class="flex justify-center"><input type="checkbox" id="selectAll" class="w-5 h-5 rounded-lg border-2 border-slate-300 text-blue-600"></div>
-                        </th>
-                        <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.25em]">Visual</th>
-                        <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.25em]">Product Info</th>
-                        <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.25em]">Pricing</th>
-                        <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.25em]">Stock Status</th>
-                        <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.25em]">Category</th>
-                        <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.25em] text-right">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100" id="productTableBody">
-                    {% for product in products %}
-                        <tr class="hover:bg-slate-50/50 transition-all group/row product-row">
-                            <td class="checkbox-col transition-all duration-300" style="width: 0; opacity: 0; overflow: hidden; padding: 0;">
-                                <div class="flex justify-center"><input type="checkbox" value="{{ product.id }}" class="product-checkbox w-5 h-5 rounded-lg border-2 border-slate-300 text-blue-600"></div>
-                            </td>
-                            <td class="px-8 py-6">
+        {# --- REFINED SEARCH & SORT --- #}
+        <div class="bg-white rounded-[2rem] border border-slate-100 p-4 mb-8 shadow-sm flex flex-col md:flex-row gap-4">
+            <div class="relative flex-grow group">
+                <input type="text" id="tableSearch" placeholder="Search products..."
+                       class="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-xl outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 text-xs">
+                <svg class="w-4 h-4 text-slate-400 absolute left-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"/></svg>
+            </div>
+            <select onchange="window.location.href='?sort=' + this.value"
+                    class="bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-3 font-bold text-slate-700 text-xs outline-none cursor-pointer">
+                <option value="desc" {{ currentSort == 'desc' ? 'selected' : '' }}>Newest Added</option>
+                <option value="asc" {{ currentSort == 'asc' ? 'selected' : '' }}>Oldest Added</option>
+            </select>
+        </div>
+
+        {% if products|length > 0 %}
+            {# --- COMPACT GRID (4 PER LINE) --- #}
+            <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                {% for product in products %}
+                    <div class="product-card group bg-white rounded-[2.5rem] border border-slate-100 p-5 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1.5 transition-all duration-300 relative">
+
+                        {# Selection Checkbox (Hidden initially) #}
+                        <div class="checkbox-col absolute top-4 left-4 z-20 opacity-0 pointer-events-none transition-all duration-300">
+                            <input type="checkbox" value="{{ product.id }}" class="product-checkbox w-6 h-6 rounded-lg border-2 border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+                        </div>
+
+                        {# Actions #}
+                        <div class="absolute top-4 right-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all transform scale-90 group-hover:scale-100 z-10">
+                            <a href="{{ path('app_product_edit', {id: product.id}) }}" class="p-2 bg-white/90 backdrop-blur text-slate-400 hover:text-blue-600 rounded-lg shadow-sm border border-slate-100 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="2.5" stroke-linecap="round"/></svg>
+                            </a>
+                            <button onclick="openConfirmModal('delete', '{{ path('app_product_delete', {id: product.id}) }}', '{{ csrf_token('delete' ~ product.id) }}')"
+                                    class="p-2 bg-white/90 backdrop-blur text-slate-400 hover:text-red-500 rounded-lg shadow-sm border border-slate-100 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2.5" stroke-linecap="round"/></svg>
+                            </button>
+                        </div>
+
+                        <div class="flex flex-col h-full">
+                            <div class="aspect-square w-full rounded-2xl bg-slate-50 overflow-hidden mb-4 border border-slate-50 group-hover:border-blue-50 transition-all">
                                 {% if product.imageUrl %}
-                                    <div class="relative h-20 w-20 group/img">
-                                        <img src="{{ asset('uploads/products/' ~ product.imageUrl) }}" onclick="maximizeImage(this)"
-                                             class="h-full w-full rounded-2xl object-cover cursor-zoom-in border-4 border-white shadow-md ring-1 ring-slate-200 transition-all transform group-hover/img:scale-110">
-                                    </div>
+                                    <img src="{{ asset('uploads/products/' ~ product.imageUrl) }}" onclick="maximizeImage(this)"
+                                         class="w-full h-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-110">
                                 {% else %}
-                                    <div class="h-20 w-20 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 border-2 border-dashed border-slate-200">
-                                        <svg class="w-8 h-8 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2"/></svg>
+                                    <div class="w-full h-full flex items-center justify-center text-slate-200">
+                                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2"/></svg>
                                     </div>
                                 {% endif %}
-                            </td>
-                            <td class="px-8 py-6">
-                                <div class="font-black text-slate-800 text-xl mb-1 group-hover/row:text-blue-600 transition-colors">{{ product.name }}</div>
-                                <div class="text-slate-500 text-sm font-medium line-clamp-1">{{ product.description }}</div>
-                            </td>
-                            <td class="px-8 py-6">
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="text-[8px] font-black text-blue-500 uppercase tracking-[0.2em] bg-blue-50 px-2 py-0.5 rounded-md">
+                                    {{ product.category ? product.category.name : 'No Category' }}
+                                </span>
+                            </div>
+
+                            <h3 class="product-name text-sm font-black text-slate-800 mb-1 truncate uppercase group-hover:text-blue-600 transition-colors">{{ product.name }}</h3>
+                            <p class="text-slate-500 text-[10px] font-semibold mb-4 line-clamp-1">{{ product.description }}</p>
+
+                            <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
                                 <div class="flex flex-col">
-                                    <span class="text-2xl font-black text-slate-900 leading-none">{{ product.price|number_format(2, '.', ',') }}</span>
-                                    <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest mt-1">MAD</span>
+                                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Price</span>
+                                    <span class="text-sm font-black text-slate-900">{{ product.price|number_format(2) }} <span class="text-[8px] text-blue-600">MAD</span></span>
                                 </div>
-                            </td>
-                            <td class="px-8 py-6">
-                                <div class="inline-flex items-center px-4 py-2.5 rounded-2xl text-sm font-bold {{ product.quantity < 5 ? 'bg-red-50 text-red-600 border-2 border-red-100/50' : 'bg-emerald-50 text-emerald-700 border-2 border-emerald-100/50' }}">
-                                    <span class="w-2.5 h-2.5 rounded-full mr-2.5 {{ product.quantity < 5 ? 'bg-red-500 animate-pulse' : 'bg-emerald-500' }}"></span>
-                                    {{ product.quantity }} <span class="ml-1.5 opacity-60 font-black uppercase text-[10px]">{{ product.unit }}</span>
+                                <div class="text-right">
+                                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter block">Stock</span>
+                                    <span class="text-[11px] font-black {{ product.quantity < 5 ? 'text-red-500 animate-pulse' : 'text-emerald-600' }}">
+                                        {{ product.quantity }} <span class="text-[9px] uppercase">{{ product.unit }}</span>
+                                    </span>
                                 </div>
-                            </td>
-                            <td class="px-8 py-6">
-                                {% if product.category %}
-                                    <span class="px-4 py-2 bg-blue-50 text-blue-600 text-[10px] font-black rounded-xl border border-blue-100 uppercase tracking-widest">{{ product.category.name }}</span>
-                                {% else %}
-                                    <span class="text-slate-300 italic text-sm">No Category</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-8 py-6 text-right">
-                                <div class="flex justify-end items-center gap-2">
-                                    <a href="{{ path('app_product_edit', {id: product.id}) }}" class="p-3 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-                                    <button type="button" onclick="openConfirmModal('delete', '{{ path('app_product_delete', {id: product.id}) }}', '{{ csrf_token('delete' ~ product.id) }}')" class="p-3 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
 
             {# Batch Deletion Bar #}
-            <div id="batchBar" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md text-white px-10 py-5 rounded-[2rem] shadow-2xl flex items-center gap-8 translate-y-40 transition-all duration-500 z-[100] opacity-0 border border-white/10">
+            <div id="batchBar" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md text-white px-8 py-4 rounded-[2rem] shadow-2xl flex items-center gap-6 translate-y-40 transition-all duration-500 z-[100] opacity-0 border border-white/10">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-xs font-black" id="selectedCount">0</div>
-                    <span class="text-sm font-bold tracking-tight text-slate-200">Products Selected</span>
+                    <div id="selectedCount" class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-xs font-black">0</div>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Products Selected</span>
                 </div>
-                <div class="h-8 w-px bg-white/10"></div>
+                <div class="h-6 w-px bg-white/10"></div>
                 <form id="bulkDeleteForm" action="{{ path('app_product_bulk_delete') }}" method="POST">
                     <input type="hidden" name="ids" id="bulkIdsInput">
-                    <button type="submit" class="flex items-center gap-2 text-red-400 hover:text-red-300 font-black text-sm uppercase tracking-widest">
-                        Delete Permanent
-                    </button>
+                    <button type="submit" class="text-red-400 hover:text-red-300 font-black text-[10px] uppercase tracking-[0.2em] transition-colors">Delete Permanent</button>
                 </form>
             </div>
-        </div>
-
-        {# Search No Results #}
-        <div id="noResults" class="hidden py-32 text-center">
-            <div class="inline-flex items-center justify-center w-24 h-24 rounded-[2.5rem] bg-slate-50 mb-6">
-                <svg class="w-12 h-12 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"/></svg>
+        {% else %}
+            <div id="noResults" class="py-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-100">
+                <h3 class="text-xl font-black text-slate-400 uppercase tracking-widest">Empty Inventory</h3>
             </div>
-            <h3 class="text-2xl font-black text-slate-800 mb-2">No matching products</h3>
-            <p class="text-slate-400 font-medium">Try changing your search terms.</p>
-        </div>
-    </div>
+        {% endif %}
 
-    {# Modals and Lightbox #}
-    <div id="image-lightbox" onclick="closeLightbox()" class="fixed inset-0 z-[600] hidden bg-slate-900/95 backdrop-blur-xl cursor-zoom-out items-center justify-center p-8">
-        <div class="relative max-w-5xl w-full h-full flex items-center justify-center">
-            <img id="lightbox-img" src="" class="max-h-full max-w-full rounded-[2rem] shadow-2xl border-4 border-white/5 transition-all duration-300">
+        {# No Search Results State #}
+        <div id="noSearchResults" class="hidden py-32 text-center">
+            <h3 class="text-xl font-black text-slate-800 uppercase">No Matches Found</h3>
         </div>
-    </div>
 
-    <div id="deleteModal" class="fixed inset-0 z-[600] hidden items-center justify-center p-6">
-        <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-md" onclick="closeDeleteModal()"></div>
-        <div class="relative bg-white rounded-[3rem] max-w-md w-full p-10 shadow-2xl transform transition-all">
-            <div class="w-24 h-24 bg-red-50 rounded-[2rem] flex items-center justify-center mb-8 mx-auto">
-                <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-            <h3 class="text-3xl font-black text-slate-900 text-center mb-3">Remove Product?</h3>
-            <p class="text-slate-500 text-center font-semibold mb-10 leading-relaxed">This action is permanent and will affect your inventory records.</p>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <button onclick="closeDeleteModal()" class="flex-1 px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] transition-all order-2 sm:order-1">Keep It</button>
-                <form id="modalDeleteForm" method="POST" class="flex-1 order-1 sm:order-2">
-                    <input type="hidden" name="_token" id="modalDeleteToken">
-                    <button type="submit" class="w-full px-8 py-4 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] transition-all shadow-xl shadow-red-200">Yes, Delete</button>
-                </form>
+        {# Lightbox #}
+        <div id="image-lightbox" onclick="closeLightbox()" class="fixed inset-0 z-[600] hidden bg-slate-900/95 backdrop-blur-xl cursor-zoom-out items-center justify-center p-8">
+            <img id="lightbox-img" src="" class="max-h-full max-w-full rounded-[2rem] shadow-2xl border-4 border-white/10">
+        </div>
+
+        {# Delete Modal #}
+        <div id="deleteModal" class="fixed inset-0 z-[600] hidden items-center justify-center p-6 bg-slate-900/80 backdrop-blur-md">
+            <div class="bg-white rounded-[3rem] max-w-md w-full p-10 shadow-2xl border border-white">
+                <div class="w-20 h-20 bg-red-50 text-red-500 rounded-[1.5rem] flex items-center justify-center mb-6 mx-auto">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2.5" stroke-linecap="round"/></svg>
+                </div>
+                <h3 class="text-2xl font-black text-slate-900 text-center mb-3">Remove Item?</h3>
+                <p class="text-slate-500 text-center font-semibold mb-8 text-sm">This action is permanent and will affect records.</p>
+                <div class="flex gap-3">
+                    <button onclick="closeDeleteModal()" class="flex-1 py-4 bg-slate-50 text-slate-600 rounded-2xl font-black uppercase text-[10px] tracking-widest">Keep It</button>
+                    <form id="modalDeleteForm" method="POST" class="flex-1">
+                        <input type="hidden" name="_token" id="modalDeleteToken">
+                        <button type="submit" class="w-full py-4 bg-red-500 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest">Yes, Delete</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
+
+    <style>.line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }</style>
 
     <script>
         (function() {
-            // Re-check empty state helper
-            function checkEmptyState() {
-                const visibleRows = Array.from(document.querySelectorAll('.product-row')).filter(r => r.style.display !== 'none');
-                document.getElementById('noResults').classList.toggle('hidden', visibleRows.length > 0);
-            }
-
-            // Image Lightbox
-            window.maximizeImage = function(imgElement) {
-                const lightbox = document.getElementById('image-lightbox');
-                const lightboxImg = document.getElementById('lightbox-img');
-                lightboxImg.src = imgElement.src;
-                lightbox.classList.remove('hidden');
-                lightbox.classList.add('flex');
+            // 1. Lightbox
+            window.maximizeImage = function(img) {
+                const lb = document.getElementById('image-lightbox');
+                document.getElementById('lightbox-img').src = img.src;
+                lb.classList.replace('hidden', 'flex');
                 document.body.style.overflow = 'hidden';
             };
-
-            window.closeLightbox = function() {
-                const lightbox = document.getElementById('image-lightbox');
-                lightbox.classList.add('hidden');
-                lightbox.classList.remove('flex');
+            window.closeLightbox = () => {
+                document.getElementById('image-lightbox').classList.replace('flex', 'hidden');
                 document.body.style.overflow = 'auto';
             };
 
-            // Enhanced Search
+            // 2. Export with Filter (Matching your Controller 'q' param)
+            const exportBtn = document.getElementById('exportBtn');
             const tableSearch = document.getElementById('tableSearch');
-            tableSearch.addEventListener('keyup', function() {
-                let filter = this.value.toLowerCase();
-                let rows = document.querySelectorAll('.product-row');
-                rows.forEach(row => {
-                    let text = row.innerText.toLowerCase();
-                    row.style.display = text.includes(filter) ? '' : 'none';
+            if (exportBtn && tableSearch) {
+                exportBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const searchTerm = tableSearch.value.trim();
+                    const url = new URL(this.href, window.location.origin);
+                    if (searchTerm) url.searchParams.set('q', searchTerm); // SETS 'q' TO MATCH CONTROLLER
+                    window.location.href = url.toString();
                 });
-                checkEmptyState();
+            }
+
+            // 3. Instant Search (UI only)
+            tableSearch.addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase();
+                const cards = document.querySelectorAll('.product-card');
+                let found = 0;
+                cards.forEach(card => {
+                    const text = card.innerText.toLowerCase();
+                    const match = text.includes(term);
+                    card.style.display = match ? '' : 'none';
+                    if (match) found++;
+                });
+                document.getElementById('noSearchResults').classList.toggle('hidden', found > 0 || term === '');
             });
 
-            // Select Mode
+            // 4. Select Mode
             const toggleBtn = document.getElementById('toggleSelectMode');
             const selectModeText = document.getElementById('selectModeText');
-            const checkboxCols = document.querySelectorAll('.checkbox-col');
-            const checkboxHeader = document.getElementById('checkboxHeader');
             let isSelectMode = false;
 
             toggleBtn.addEventListener('click', () => {
@@ -229,55 +223,41 @@
                 toggleBtn.classList.toggle('text-white', isSelectMode);
                 selectModeText.innerText = isSelectMode ? "Cancel" : "Select Items";
 
-                const applyStyles = (el) => {
-                    el.style.width = isSelectMode ? '80px' : '0';
-                    el.style.padding = isSelectMode ? '0 1rem' : '0';
-                    el.style.opacity = isSelectMode ? '1' : '0';
-                };
-                applyStyles(checkboxHeader);
-                checkboxCols.forEach(col => applyStyles(col));
+                document.querySelectorAll('.checkbox-col').forEach(col => {
+                    col.classList.toggle('opacity-0', !isSelectMode);
+                    col.classList.toggle('pointer-events-none', !isSelectMode);
+                });
+
                 if (!isSelectMode) {
                     document.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = false);
                     updateBatchBar();
                 }
             });
 
-            // Batch Select
+            // 5. Batch Logic
             document.querySelectorAll('.product-checkbox').forEach(cb => {
                 cb.addEventListener('change', updateBatchBar);
             });
 
             function updateBatchBar() {
-                const batchBar = document.getElementById('batchBar');
-                const selectedCount = document.getElementById('selectedCount');
                 const checked = document.querySelectorAll('.product-checkbox:checked');
+                const bar = document.getElementById('batchBar');
                 if (checked.length > 0) {
-                    selectedCount.innerText = checked.length;
-                    batchBar.classList.remove('translate-y-40', 'opacity-0');
-                    document.getElementById('bulkIdsInput').value = Array.from(checked).map(cb => cb.value).join(',');
+                    document.getElementById('selectedCount').innerText = checked.length;
+                    document.getElementById('bulkIdsInput').value = Array.from(checked).map(c => c.value).join(',');
+                    bar.classList.remove('translate-y-40', 'opacity-0');
                 } else {
-                    batchBar.classList.add('translate-y-40', 'opacity-0');
+                    bar.classList.add('translate-y-40', 'opacity-0');
                 }
             }
 
-            // Modal Logic
-            window.openConfirmModal = function(type, url, token) {
-                const modal = document.getElementById('deleteModal');
-                const form = document.getElementById('modalDeleteForm');
-                const tokenInput = document.getElementById('modalDeleteToken');
-                form.action = url;
-                tokenInput.value = token;
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                document.body.style.overflow = 'hidden';
+            // 6. Delete Modal
+            window.openConfirmModal = (type, url, token) => {
+                document.getElementById('modalDeleteForm').action = url;
+                document.getElementById('modalDeleteToken').value = token;
+                document.getElementById('deleteModal').classList.replace('hidden', 'flex');
             };
-
-            window.closeDeleteModal = function() {
-                const modal = document.getElementById('deleteModal');
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                document.body.style.overflow = 'auto';
-            };
+            window.closeDeleteModal = () => document.getElementById('deleteModal').classList.replace('flex', 'hidden');
         })();
     </script>
 {% endblock %}
