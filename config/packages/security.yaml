@@ -26,9 +26,12 @@ security:
                 target: app_login
 
     access_control:
+        # 1. Allow everyone to see the login and register pages
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
-        - { path: ^/, roles: PUBLIC_ACCESS }
+
+        # 2. Require ROLE_USER for everything else (Dashboard, Products, etc.)
+        - { path: ^/, roles: ROLE_USER }
 
     role_hierarchy:
         ROLE_ADMIN: ROLE_USER
