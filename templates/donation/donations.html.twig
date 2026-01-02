@@ -1,103 +1,117 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Donations{% endblock %}
-{% block page_title %}New Donation{% endblock %}
+{% block title %}Donation Portal{% endblock %}
 
 {% block body %}
-    <div class="max-w-[1600px] mx-auto px-6 pb-20 pt-4 antialiased">
-        {# Header Section #}
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
-            <div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight mb-2">Create Donation</h1>
-                <p class="text-slate-500 text-lg font-medium">Select products and adjust quantities for distribution.</p>
-            </div>
-            {# Error Toast #}
-            <div id="error-toast" class="hidden px-6 py-3.5 bg-red-50 text-red-600 border-2 border-red-100 rounded-2xl text-sm font-black uppercase tracking-widest animate-bounce">
-                Insufficient Stock!
-            </div>
-        </div>
+    <div class="max-w-[1600px] mx-auto px-6 py-10 antialiased">
 
-        <div class="flex flex-col lg:flex-row gap-8 h-[75vh]">
-
-            {# --- LEFT SIDE: VERTICAL PRODUCT LIST --- #}
-            <div class="w-full lg:w-1/3 flex flex-col bg-white rounded-[2.5rem] border-2 border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
-                <div class="p-6 bg-slate-50 border-b-2 border-slate-100">
-                    <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"/></svg>
+        {# --- SAPPHIRE HEADER --- #}
+        <div class="relative overflow-hidden bg-slate-900 rounded-[3rem] p-10 mb-10 shadow-2xl shadow-slate-900/30 border border-slate-800">
+            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
+            <div class="relative flex flex-col lg:flex-row justify-between items-center gap-8">
+                <div class="flex items-center gap-8">
+                    <div>
+                        <h1 class="text-4xl font-black text-white tracking-tight mb-2">Donation Portal</h1>
+                        <div id="error-toast" class="hidden text-red-400 font-bold uppercase text-[10px] tracking-widest animate-pulse">
+                            ⚠️ Error: Insufficient Inventory
                         </div>
-                        <input type="text" id="productSearch"
-                               class="block w-full pl-11 pr-4 py-3.5 bg-white border-2 border-transparent focus:border-blue-500 rounded-2xl transition-all outline-none text-sm font-bold placeholder:text-slate-400"
-                               placeholder="Search inventory...">
+                        <p id="default-subtitle" class="text-slate-400 font-bold uppercase text-[11px] tracking-[0.3em]">Distribution & Relief Logistics</p>
                     </div>
                 </div>
 
-                <div class="flex-grow overflow-y-auto p-4 space-y-3 custom-scrollbar" id="productList">
+                <div class="relative w-full md:w-96 group">
+                    <input type="text" id="productSearch" onkeyup="filterProducts()" placeholder="Search inventory..."
+                           class="w-full pl-14 pr-8 py-5 bg-slate-800/50 border-2 border-slate-700 focus:border-blue-500/50 focus:bg-slate-800 rounded-[2rem] outline-none transition-all font-bold text-white placeholder:text-slate-500 shadow-2xl">
+                    <svg class="w-5 h-5 text-slate-500 absolute left-5 top-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5" stroke-linecap="round"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-10 h-[70vh]">
+
+            {# --- LEFT: SELECTION CATALOG --- #}
+            <div class="w-full lg:w-2/5 flex flex-col bg-white rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+                <div class="p-8 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-black text-slate-400 uppercase text-[10px] tracking-widest">Available Inventory</h3>
+                    <span class="px-3 py-1 bg-white border border-slate-200 rounded-full text-[10px] font-black text-slate-500 uppercase">{{ products|length }} Items</span>
+                </div>
+
+                <div class="flex-grow overflow-y-auto p-6 space-y-4 custom-scrollbar" id="productList">
                     {% for product in products %}
-                        <div class="product-item group flex items-center p-4 rounded-3xl border-2 border-transparent hover:border-blue-100 hover:bg-blue-50/30 transition-all cursor-pointer"
+                        {# Card stays visible, but glows blue when hovered #}
+                        <div class="product-item group flex items-center p-5 rounded-[2.5rem] border-2 border-slate-50 bg-white hover:border-blue-100 hover:bg-blue-50/20 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
+                             onclick="addToManifest(this.dataset)"
                              data-id="{{ product.id }}"
                              data-name="{{ product.name }}"
                              data-unit="{{ product.unit }}"
                              data-stock="{{ product.quantity }}"
                              data-img="{{ product.imageUrl ? asset('uploads/products/' ~ product.imageUrl) : '' }}">
 
-                            <div class="h-16 w-16 flex-shrink-0">
-                                {% if product.imageUrl %}
-                                    <img src="{{ asset('uploads/products/' ~ product.imageUrl) }}" class="h-full w-full rounded-2xl object-cover shadow-sm border-2 border-white">
-                                {% else %}
-                                    <div class="h-full w-full rounded-2xl bg-slate-100 flex items-center justify-center text-slate-300">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2"/></svg>
-                                    </div>
+                            <div class="h-20 w-20 flex-shrink-0 relative">
+                                <img src="{{ product.imageUrl ? asset('uploads/products/' ~ product.imageUrl) : 'https://placehold.co/100' }}"
+                                     class="h-full w-full rounded-[1.8rem] object-cover shadow-sm border-2 border-white group-hover:scale-105 transition-transform duration-500">
+                                {% if product.quantity < 5 %}
+                                    <span class="absolute -top-1 -right-1 flex h-4 w-4">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+                                </span>
                                 {% endif %}
                             </div>
 
-                            <div class="ml-4 flex-grow">
+                            <div class="ml-6 flex-grow">
                                 <div class="font-black text-slate-800 text-sm uppercase tracking-tight group-hover:text-blue-600 transition-colors">{{ product.name }}</div>
-                                <div class="text-[10px] font-black text-blue-500 uppercase tracking-widest mt-0.5">{{ product.category ? product.category.name : 'General' }}</div>
-                                <div class="text-[11px] font-bold text-slate-400 mt-1">Stock: <span class="{{ product.quantity < 5 ? 'text-red-500' : 'text-slate-600' }}">{{ product.quantity }} {{ product.unit }}</span></div>
+                                <div class="flex items-center gap-3 mt-1">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">In Stock:</span>
+                                    <span class="text-xs font-black {{ product.quantity < 5 ? 'text-red-500' : 'text-slate-600' }}">{{ product.quantity }} {{ product.unit }}</span>
+                                </div>
                             </div>
 
-                            <button onclick="addToManifest(this.parentElement.dataset)"
-                                    class="p-2.5 bg-white border-2 border-slate-100 text-slate-400 group-hover:bg-blue-600 group-hover:border-blue-600 group-hover:text-white rounded-xl transition-all shadow-sm active:scale-90">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </button>
+                            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-slate-300 group-hover:text-blue-600 group-hover:border-blue-200 group-hover:bg-white transition-all">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="3" stroke-linecap="round"/></svg>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
             </div>
 
-            {# --- RIGHT SIDE: MANIFEST TABLE --- #}
-            <div class="w-full lg:w-2/3 flex flex-col bg-white rounded-[2.5rem] border-2 border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
+            {# --- RIGHT: DONATION MANIFEST --- #}
+            <div class="w-full lg:w-3/5 flex flex-col bg-white rounded-[3.5rem] border border-slate-100 shadow-2xl shadow-slate-200/60 overflow-hidden">
                 <div class="flex-grow overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                        <tr class="bg-slate-50 border-b-2 border-slate-100">
-                            <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Visual</th>
-                            <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Nom</th>
-                            <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Quantité</th>
-                            <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Unité</th>
-                            <th class="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+                        <tr class="bg-slate-50/50 border-b border-slate-100">
+                            <th class="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Item Description</th>
+                            <th class="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Qty to Give</th>
+                            <th class="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Remove</th>
                         </tr>
                         </thead>
-                        <tbody id="manifestBody" class="divide-y divide-slate-100"></tbody>
+                        <tbody id="manifestBody" class="divide-y divide-slate-50">
+                        {# JS Populated #}
+                        </tbody>
                     </table>
 
-                    <div id="emptyTableState" class="py-32 text-center">
-                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-[2rem] bg-slate-50 mb-4">
-                            <svg class="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-width="2"/></svg>
+                    <div id="emptyTableState" class="py-40 text-center">
+                        <div class="inline-flex items-center justify-center w-24 h-24 rounded-[2.5rem] bg-slate-50 mb-6">
+                            <svg class="w-12 h-12 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 12H4" stroke-width="3" stroke-linecap="round"/></svg>
                         </div>
-                        <p class="text-slate-400 font-bold uppercase text-[11px] tracking-widest">Manifest is empty</p>
+                        <p class="text-slate-400 font-black uppercase text-[11px] tracking-[0.3em]">Manifest is empty</p>
                     </div>
                 </div>
 
-                <div class="p-8 bg-slate-50 border-t-2 border-slate-100 flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="text-slate-400 font-black text-[10px] uppercase tracking-widest">Total Types</div>
-                        <div id="manifestBadge" class="px-4 py-1 bg-slate-900 text-white rounded-full text-xs font-black">0</div>
+                {# --- FOOTER ACTION BAR (Clean White Design) --- #}
+                <div class="p-10 bg-white border-t border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-6">
+                        <div class="relative">
+                            <div id="manifestBadge" class="relative w-14 h-14 bg-slate-900 text-white flex items-center justify-center rounded-2xl text-xl font-black shadow-lg">0</div>
+                        </div>
+                        <div>
+                            <p class="text-slate-900 font-black uppercase text-[12px] tracking-widest">Selected Batch</p>
+                            <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest">Ready for distribution</p>
+                        </div>
                     </div>
                     <button onclick="openConfirmModal()"
-                            class="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-200 uppercase text-[11px] tracking-[0.2em] transition-all active:scale-95">
-                        Confirm Donation
+                            class="px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-[2rem] shadow-xl shadow-blue-200 uppercase text-[12px] tracking-[0.2em] transition-all active:scale-95">
+                        Finalize Distribution
                     </button>
                 </div>
             </div>
@@ -105,24 +119,28 @@
     </div>
 
     {# --- CONFIRMATION MODAL --- #}
-    <div id="confirmModal" class="fixed inset-0 z-[600] hidden items-center justify-center p-6">
-        <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-md" onclick="closeConfirmModal()"></div>
-        <div class="relative bg-white rounded-[3rem] max-w-md w-full p-10 shadow-2xl">
-            <div class="w-24 h-24 bg-blue-50 rounded-[2rem] flex items-center justify-center mb-8 mx-auto">
-                <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div id="confirmModal" class="fixed inset-0 z-[600] hidden items-center justify-center p-6 bg-slate-900/90 backdrop-blur-xl">
+        <div class="bg-white rounded-[4rem] max-w-md w-full p-12 shadow-2xl border border-white text-center">
+            <div class="w-28 h-28 bg-blue-50 text-blue-500 rounded-[2.5rem] flex items-center justify-center mb-8 mx-auto shadow-inner">
+                <svg class="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <h3 class="text-3xl font-black text-slate-900 text-center mb-3">Finalize?</h3>
-            <p class="text-slate-500 text-center font-semibold mb-10 leading-relaxed">Confirm distribution of <span id="modalItemCount" class="text-blue-600">0</span> items.</p>
-            <div class="flex gap-4">
-                <button onclick="closeConfirmModal()" class="flex-1 py-4 bg-slate-100 text-slate-700 rounded-2xl font-black uppercase text-[10px] tracking-widest">Cancel</button>
-                <button onclick="processDonation()" class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-blue-100">Confirm</button>
+            <h3 class="text-3xl font-black text-slate-900 mb-3 tracking-tight">Verify Action</h3>
+            <p class="text-slate-500 font-semibold mb-10 leading-relaxed px-4">Confirming this will decrease stock levels for <span id="modalItemCount" class="text-blue-600">0</span> unique products.</p>
+            <div class="flex flex-col gap-4">
+                <button onclick="processDonation()" class="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-[2rem] uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-blue-100 transition-all">
+                    Confirm Distribution
+                </button>
+                <button onclick="closeConfirmModal()" class="w-full py-6 text-slate-400 hover:text-slate-900 font-black rounded-2xl uppercase text-[10px] tracking-widest transition-all">
+                    Cancel
+                </button>
             </div>
         </div>
     </div>
 
     <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
+        input[type=number]::-webkit-inner-spin-button { display: none; }
     </style>
 
     <script>
@@ -155,23 +173,30 @@
 
             manifest.forEach(item => {
                 body.innerHTML += `
-                    <tr class="hover:bg-slate-50/50 transition-all">
-                        <td class="px-8 py-4">
-                            <img src="${item.img || 'https://placehold.co/100'}" class="h-12 w-12 rounded-xl object-cover border-2 border-white shadow-sm">
-                        </td>
-                        <td class="px-8 py-4 font-black text-slate-800 uppercase text-xs">${item.name}</td>
-                        <td class="px-8 py-4 text-center">
+                <tr class="hover:bg-slate-50/50 transition-all group">
+                    <td class="px-10 py-6">
+                        <div class="flex items-center gap-6">
+                            <img src="${item.img || 'https://placehold.co/100'}" class="h-14 w-14 rounded-2xl object-cover border-2 border-white shadow-sm group-hover:scale-110 transition-transform">
+                            <div>
+                                <div class="font-black text-slate-800 uppercase text-xs tracking-tight">${item.name}</div>
+                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Ref ID: ${item.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-10 py-6 text-center">
+                        <div class="inline-flex items-center gap-3">
                             <input type="number" value="${item.amount}" min="1" onchange="updateAmount('${item.id}', this.value)"
-                                   class="w-24 px-4 py-2 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl text-center font-black text-blue-600 outline-none transition-all">
-                        </td>
-                        <td class="px-8 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">${item.unit}</td>
-                        <td class="px-8 py-4 text-right">
-                            <button onclick="removeFromManifest('${item.id}')" class="p-2 text-slate-300 hover:text-red-500 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+                                   class="w-24 px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl text-center font-black text-blue-600 outline-none transition-all">
+                            <span class="text-[10px] font-black text-slate-400 uppercase w-10 text-left">${item.unit}</span>
+                        </div>
+                    </td>
+                    <td class="px-10 py-6 text-right">
+                        <button onclick="removeFromManifest('${item.id}')" class="p-3 text-slate-200 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                    </td>
+                </tr>
+            `;
             });
         }
 
@@ -197,17 +222,23 @@
             } else {
                 closeConfirmModal();
                 const toast = document.getElementById('error-toast');
+                const sub = document.getElementById('default-subtitle');
                 toast.innerText = await response.text();
                 toast.classList.remove('hidden');
-                setTimeout(() => toast.classList.add('hidden'), 5000);
+                sub.classList.add('hidden');
+
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                    sub.classList.remove('hidden');
+                }, 5000);
             }
         }
 
-        document.getElementById('productSearch').addEventListener('keyup', function() {
-            let filter = this.value.toLowerCase();
+        function filterProducts() {
+            let filter = document.getElementById('productSearch').value.toLowerCase();
             document.querySelectorAll('.product-item').forEach(item => {
                 item.style.display = item.dataset.name.toLowerCase().includes(filter) ? 'flex' : 'none';
             });
-        });
+        }
     </script>
 {% endblock %}
