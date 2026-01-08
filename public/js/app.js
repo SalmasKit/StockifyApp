@@ -1,0 +1,12 @@
+function toggleMenu() {
+    const menu = document.getElementById('mobile-menu');
+    menu.classList.toggle('hidden');
+}
+
+setTimeout(() => {
+    document.querySelectorAll('.animate-bounce-in').forEach(el => {
+        el.style.transition = 'opacity 0.5s ease';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 500);
+    });
+}, 5000);
