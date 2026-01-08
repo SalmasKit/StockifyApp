@@ -43,8 +43,6 @@ class AdminUserController extends AbstractController
         $user->setIsActive($newState);
 
         // Ensure ROLE_USER is persisted in the database when activating
-        // getRoles() adds ROLE_USER virtually if missing, so checking in_array() checks the virtual list.
-        // We simply set back the full list (virtual + real) to make it real.
         if ($newState) {
             $user->setRoles($user->getRoles());
         }

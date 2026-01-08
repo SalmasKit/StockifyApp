@@ -24,7 +24,6 @@ class Product
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    //#[Assert\NotBlank(message: "Please provide a description.")]  //idk i feel like it can be null /not necessary
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]

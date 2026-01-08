@@ -21,6 +21,7 @@ class CategoryType extends AbstractType
                 'attr' => ['placeholder' => 'Enter category name']
             ])
             ->add('description', TextareaType::class, [
+                'required' => false,
                 'attr' => ['placeholder' => 'Enter category description']
             ]);
 

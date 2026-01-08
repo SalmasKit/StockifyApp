@@ -25,6 +25,7 @@ class ProductType extends AbstractType
                'attr' => ['placeholder' => 'Enter product name']
            ])
            ->add('description', TextareaType::class, [
+               'required' => false,
                'attr' => ['placeholder' => 'Enter product description']
            ])
            ->add('price', MoneyType::class, [

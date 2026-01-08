@@ -22,11 +22,6 @@ final class CategoryController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        // 1. Simple Security: If admin hasn't activated the user, block them
-        if (!$user->isActive()) {
-            $this->addFlash('warning', 'Your account is pending administrator approval.');
-            return $this->redirectToRoute('app_login');
-        }
 
         $category = new Category();
         $form = $this->createForm(CategoryType::class, $category);
@@ -56,11 +51,6 @@ final class CategoryController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        // Check activation
-        if (!$user->isActive()) {
-            throw $this->createAccessDeniedException('Account inactive.');
-        }
-
         $form = $this->createForm(CategoryType::class, $category);
         $form->handleRequest($request);
 
@@ -78,9 +68,6 @@ final class CategoryController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        if (!$user->isActive()) {
-            throw $this->createAccessDeniedException();
-        }
 
         if ($this->isCsrfTokenValid('delete'.$category->getId(), $request->request->get('_token'))) {
             if ($category->getProducts()->count() > 0) {

@@ -29,12 +29,6 @@ final class ProductController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        // Security Check: Only approved users can see products
-        if (!$user->isActive()) {
-            $this->addFlash('warning', 'Your account is pending administrator approval.');
-            return $this->redirectToRoute('app_login');
-        }
-
         $sort = $request->query->get('sort', 'desc');
         $categoryId = $request->query->get('category');
 
@@ -64,9 +58,6 @@ final class ProductController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        if (!$user->isActive()) {
-            throw $this->createAccessDeniedException('Account inactive.');
-        }
 
         $product = new Product();
         $form = $this->createForm(ProductType::class, $product);
@@ -110,9 +101,6 @@ final class ProductController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        if (!$user->isActive()) {
-            throw $this->createAccessDeniedException();
-        }
 
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
@@ -159,9 +147,6 @@ final class ProductController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        if (!$user->isActive()) {
-            throw $this->createAccessDeniedException();
-        }
 
         if($this->isCsrfTokenValid('delete'.$product->getId(), $request->get('_token'))){
             if($product->getTransactions()->count() > 0){
@@ -184,10 +169,6 @@ final class ProductController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-
-        if (!$user->isActive()) {
-            throw $this->createAccessDeniedException();
-        }
 
         $idsString = $request->request->get('ids');
         if ($idsString) {
@@ -216,9 +197,6 @@ final class ProductController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        if (!$user->isActive()) {
-            return new JsonResponse(['success' => false, 'message' => 'Account inactive'], 403);
-        }
 
         $currentQty = (float)$product->getQuantity();
         $newQty = $currentQty > 0 ? 0 : 1;
@@ -241,10 +219,6 @@ final class ProductController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        // Security check
-        if (!$user || !$user->isActive()) {
-            throw $this->createAccessDeniedException("Unauthorized access to export.");
-        }
 
         // 1. Get filters from the Request (sent by your JavaScript)
         $sort = $request->query->get('sort', 'desc');
@@ -258,9 +232,7 @@ final class ProductController extends AbstractController
 
         // 2. Fetch data: Filtered or Full List
         if (!empty($searchTerm)) {
-            // Note: findBySearchTerm might need to be updated if you want to combine search + category
             $products = $repository->findBySearchTerm($searchTerm, $sort);
-            // If search is active, we might want to filter the results by category manually if findBySearchTerm doesn't support it
             if ($categoryId && $categoryId !== 'all') {
                 $products = array_filter($products, function($p) use ($categoryId) {
                     return $p->getCategory() && $p->getCategory()->getId() == $categoryId;
@@ -313,7 +285,6 @@ final class ProductController extends AbstractController
                         $drawing->setCoordinates('B' . $row);
                         $drawing->setWorksheet($sheet);
 
-                        // Make row taller to fit the image nicely
                         $sheet->getRowDimension($row)->setRowHeight(45);
                     }
                 }
@@ -322,7 +293,6 @@ final class ProductController extends AbstractController
                 $sequenceNumber++;
             }
 
-            // Set auto-size for columns for better readability
             foreach (range('A', 'H') as $col) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
             }

@@ -42,18 +42,18 @@ class RestockController extends AbstractController
             $product->setQuantity($product->getQuantity() + $addedQty);
             $product->setUpdatedAt(new \DateTime());
 
-            // 2. CREATE THE TRANSACTION LOG (This was missing)
+            // 2. CREATE THE TRANSACTION LOG
             $transaction = new Transaction();
             $transaction->setProduct($product);
             $transaction->setQuantity($addedQty);
-            $transaction->setType('RESTOCK'); // Matches your Twig logic
+            $transaction->setType('RESTOCK');
             $transaction->setCreatedAt(new \DateTime());
 
             // 3. Persist the transaction
             $em->persist($transaction);
         }
 
-        // 4. Flush everything (Updates products AND inserts new transaction rows)
+        // Updates products AND inserts new transaction rows
         $em->flush();
 
         return new Response("Stock and Ledger updated successfully", 200);
