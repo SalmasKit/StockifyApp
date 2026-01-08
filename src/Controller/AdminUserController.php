@@ -32,17 +32,26 @@ class AdminUserController extends AbstractController
     #[Route('/{id}/toggle', name: 'app_admin_user_toggle', methods: ['GET'])]
     public function toggleStatus(User $user, EntityManagerInterface $em): Response
     {
-        // Prevent an admin from locking themselves out
+        // Prevent an admin from desactivating himself
         if ($user === $this->getUser()) {
             $this->addFlash('warning', 'Security Protection: You cannot deactivate your own account.');
             return $this->redirectToRoute('app_admin_users');
         }
 
         // Toggle the active status
-        $user->setIsActive(!$user->isActive());
+        $newState = !$user->isActive();
+        $user->setIsActive($newState);
+
+        // Ensure ROLE_USER is persisted in the database when activating
+        // getRoles() adds ROLE_USER virtually if missing, so checking in_array() checks the virtual list.
+        // We simply set back the full list (virtual + real) to make it real.
+        if ($newState) {
+            $user->setRoles($user->getRoles());
+        }
+
         $em->flush();
 
-        $statusLabel = $user->isActive() ? 'activated' : 'deactivated';
+        $statusLabel = $newState ? 'activated' : 'deactivated';
         $this->addFlash('success', "User {$user->getName()} has been successfully {$statusLabel}.");
 
         return $this->redirectToRoute('app_admin_users');

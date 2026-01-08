@@ -51,7 +51,7 @@ class DonationController extends AbstractController
             $transaction = new Transaction();
             $transaction->setProduct($product);
             $transaction->setQuantity($askedQty);
-            $transaction->setType('DONATION'); // This string must match your Twig logic
+            $transaction->setType('DONATION');
             $transaction->setCreatedAt(new \DateTime());
 
             // 3. Persist the new row

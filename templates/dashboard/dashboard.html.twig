@@ -80,7 +80,10 @@
                         </div>
                     </div>
                     <div class="h-[350px] w-full">
-                        <canvas id="categoryChart"></canvas>
+                        <canvas id="categoryChart" 
+                                data-labels="{{ catLabels|json_encode|escape('html_attr') }}" 
+                                data-values="{{ catValues|json_encode|escape('html_attr') }}">
+                        </canvas>
                     </div>
                 </div>
 
@@ -210,44 +213,5 @@
 
 {% block javascripts %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const ctx = document.getElementById('categoryChart').getContext('2d');
-            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, '#3b82f6');
-            gradient.addColorStop(1, '#60a5fa00');
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: {{ catLabels|json_encode|raw }},
-                    datasets: [{
-                        data: {{ catValues|json_encode|raw }},
-                        backgroundColor: gradient,
-                        hoverBackgroundColor: '#2563eb',
-                        borderRadius: 12,
-                        borderSkipped: false,
-                        barThickness: 28
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#f8fafc', drawTicks: false },
-                            border: { display: false },
-                            ticks: { color: '#94a3b8', font: { weight: '800', size: 9 }, padding: 10 }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#475569', font: { weight: '800', size: 10 }, padding: 10 }
-                        }
-                    }
-                }
-            });
-        });
-    </script>
+    <script src="{{ asset('js/dashboard.js') }}"></script>
 {% endblock %}

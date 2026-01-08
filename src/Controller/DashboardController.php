@@ -18,19 +18,20 @@ class DashboardController extends AbstractController
         CategoryRepository $categoryRepo,
         TransactionRepository $transactionRepo
     ): Response {
-        // --- 1. TOP STAT CARDS ---
+
+
         $allProducts = $productRepo->findAll();
         $totalProducts = count($allProducts);
         $totalCategories = $categoryRepo->count([]);
         $totalTransactions = $transactionRepo->count([]);
 
-        // Calculate Total Monetary Value of Inventory
+        // Calculate Total flouss
         $totalValue = 0;
         foreach ($allProducts as $product) {
             $totalValue += ($product->getPrice() * $product->getQuantity());
         }
 
-        // --- 2. CHART: INVENTORY BY CATEGORY ---
+        //CHART: INVENTORY BY CATEGORY
         $categories = $categoryRepo->findAll();
         $catLabels = [];
         $catValues = [];
@@ -42,12 +43,12 @@ class DashboardController extends AbstractController
         }
 
         // --- 3. LATEST TRANSACTIONS ---
-        // Fetching the last 10 transactions with a Join to avoid N+1 query issues
+        // Fetching the last 5 transactions with a Join to avoid N+1 query issues
         $latestTransactions = $transactionRepo->createQueryBuilder('t')
             ->leftJoin('t.product', 'p')
             ->addSelect('p')
             ->orderBy('t.createdAt', 'DESC')
-            ->setMaxResults(10)
+            ->setMaxResults(5)
             ->getQuery()
             ->getResult();
 

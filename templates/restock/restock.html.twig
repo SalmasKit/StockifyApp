@@ -153,6 +153,7 @@
 
                 <div class="flex flex-col gap-4">
                     <button id="finalConfirmBtn" onclick="confirmAndSend()"
+                            data-confirm-url="{{ path('app_restock_confirm') }}"
                             class="w-full py-6 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-[2rem] uppercase text-[11px] tracking-[0.2em] transition-all shadow-xl shadow-emerald-200">
                         Verify & Save
                     </button>
@@ -172,103 +173,9 @@
         input[type=number]::-webkit-inner-spin-button { display: none; }
     </style>
 
-    <script>
-        let selectedProducts = new Map();
 
-        function toggleSelection(el) {
-            const id = el.dataset.id;
-            if (selectedProducts.has(id)) {
-                selectedProducts.delete(id);
-                el.classList.remove('selected');
-            } else {
-                selectedProducts.set(id, { name: el.dataset.name, unit: el.dataset.unit, amount: 0 });
-                el.classList.add('selected');
-            }
-            updateActionBar();
-        }
+{% endblock %}
 
-        function updateActionBar() {
-            const bar = document.getElementById('actionBar');
-            const count = document.getElementById('selectedCount');
-            count.innerText = selectedProducts.size;
-
-            if (selectedProducts.size > 0) {
-                bar.classList.replace('translate-y-48', 'translate-y-0');
-            } else {
-                bar.classList.replace('translate-y-0', 'translate-y-48');
-            }
-        }
-
-        function openQuantityDrawer() {
-            const list = document.getElementById('modalList');
-            list.innerHTML = '';
-            selectedProducts.forEach((data, id) => {
-                list.innerHTML += `
-                <div class="flex items-center justify-between p-8 bg-slate-50/50 rounded-[2.5rem] border border-slate-100 hover:border-emerald-200 transition-all">
-                    <div>
-                        <h4 class="font-black text-slate-900 uppercase text-sm tracking-tight">${data.name}</h4>
-                        <p class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mt-1">Inbound Unit: ${data.unit}</p>
-                    </div>
-                    <div class="flex items-center gap-5">
-                        <input type="number" placeholder="0" onchange="updateAmount('${id}', this.value)"
-                               class="w-36 px-6 py-4 bg-white border-2 border-slate-100 focus:border-emerald-500 rounded-2xl text-center font-black text-slate-900 outline-none transition-all shadow-sm">
-                    </div>
-                </div>
-            `;
-            });
-            document.getElementById('entryModal').classList.replace('hidden', 'flex');
-        }
-
-        function updateAmount(id, val) {
-            if (selectedProducts.has(id)) {
-                selectedProducts.get(id).amount = parseFloat(val) || 0;
-            }
-        }
-
-        function requestFinalConfirmation() {
-            const items = Array.from(selectedProducts.values());
-            if (items.some(i => i.amount > 0)) {
-                document.getElementById('safetyModal').classList.replace('hidden', 'flex');
-            } else {
-                alert("Please enter a valid amount.");
-            }
-        }
-
-        async function confirmAndSend() {
-            const btn = document.getElementById('finalConfirmBtn');
-            btn.disabled = true;
-            btn.innerText = "Syncing Master Data...";
-            const payload = Array.from(selectedProducts, ([id, value]) => ({ id, amount: value.amount }));
-
-            try {
-                const response = await fetch("{{ path('app_restock_confirm') }}", {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ items: payload })
-                });
-
-                if (response.ok) window.location.reload();
-                else {
-                    alert("Database Sync Failed.");
-                    btn.disabled = false;
-                }
-            } catch (e) { console.error(e); btn.disabled = false; }
-        }
-
-        function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
-
-        function filterProducts() {
-            let filter = document.getElementById('restockSearch').value.toLowerCase();
-            document.querySelectorAll('.product-card').forEach(card => {
-                const match = card.dataset.name.toLowerCase().includes(filter);
-                card.style.display = match ? 'block' : 'none';
-            });
-        }
-
-        function clearAll() {
-            selectedProducts.clear();
-            document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
-            updateActionBar();
-        }
-    </script>
+{% block javascripts %}
+    <script src="{{ asset('js/restock.js') }}"></script>
 {% endblock %}

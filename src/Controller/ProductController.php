@@ -24,7 +24,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ProductController extends AbstractController
 {
     #[Route('/product', name: 'app_product_index')]
-    public function index(Request $request, ProductRepository $repository): Response
+    public function index(Request $request, ProductRepository $repository, EntityManagerInterface $em): Response
     {
         /** @var User $user */
         $user = $this->getUser();
@@ -35,14 +35,25 @@ final class ProductController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $sort = $request->query->get('sort', 'desc'); // Default newest first
+        $sort = $request->query->get('sort', 'desc');
+        $categoryId = $request->query->get('category');
 
-        //  Show all products to all authorized users
-        $products = $repository->findBy([], ['createdAt' => $sort]);
+        $criteria = [];
+        $currentCategory = null;
+
+        if ($categoryId && $categoryId !== 'all') {
+            $currentCategory = $em->getRepository(Category::class)->find($categoryId);
+            if ($currentCategory) {
+                $criteria['category'] = $currentCategory;
+            }
+        }
+
+        $products = $repository->findBy($criteria, ['createdAt' => $sort]);
 
         return $this->render('product/products_list.html.twig', [
             'products' => $products,
-            'currentSort' => $sort
+            'currentSort' => $sort,
+            'currentCategory' => $currentCategory
         ]);
     }
 
@@ -238,13 +249,25 @@ final class ProductController extends AbstractController
         // 1. Get filters from the Request (sent by your JavaScript)
         $sort = $request->query->get('sort', 'desc');
         $searchTerm = $request->query->get('q');
+        $categoryId = $request->query->get('category');
+
+        $criteria = [];
+        if ($categoryId && $categoryId !== 'all') {
+            $criteria['category'] = $categoryId;
+        }
 
         // 2. Fetch data: Filtered or Full List
         if (!empty($searchTerm)) {
-            // We use a custom method in the repository to handle the search logic
+            // Note: findBySearchTerm might need to be updated if you want to combine search + category
             $products = $repository->findBySearchTerm($searchTerm, $sort);
+            // If search is active, we might want to filter the results by category manually if findBySearchTerm doesn't support it
+            if ($categoryId && $categoryId !== 'all') {
+                $products = array_filter($products, function($p) use ($categoryId) {
+                    return $p->getCategory() && $p->getCategory()->getId() == $categoryId;
+                });
+            }
         } else {
-            $products = $repository->findBy([], ['createdAt' => $sort]);
+            $products = $repository->findBy($criteria, ['createdAt' => $sort]);
         }
 
         $response = new StreamedResponse(function() use ($products) {

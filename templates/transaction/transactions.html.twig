@@ -111,33 +111,5 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script>
-        // Live Search with Debounce (wait 500ms after typing before submitting)
-        let timeout = null;
-        document.getElementById('searchInput').addEventListener('input', function() {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                this.form.submit();
-            }, 500);
-        });
-
-
-        const searchInput = document.getElementById('searchInput');
-        let typingTimer;
-        const doneTypingInterval = 400; // Time in ms (0.4 seconds)
-
-        searchInput.addEventListener('input', () => {
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                // Automatically submits the form once you stop typing
-                document.getElementById('filterForm').submit();
-            }, doneTypingInterval);
-        });
-
-        // Put cursor at the end of text after refresh
-        const val = searchInput.value;
-        searchInput.value = '';
-        searchInput.focus();
-        searchInput.value = val;
-    </script>
+    <script src="{{ asset('js/transactions.js') }}"></script>
 {% endblock %}

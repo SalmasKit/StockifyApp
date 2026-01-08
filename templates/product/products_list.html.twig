@@ -16,13 +16,23 @@
                     <div>
                         {# Aligned Typography: text-3xl / text-[9px] #}
                         <h1 class="text-3xl font-black text-white tracking-tight mb-1">Inventory</h1>
-                        <p class="text-slate-400 font-bold uppercase text-[9px] tracking-[0.3em]">Live Product Stock & Catalog</p>
+                        <div class="flex items-center gap-3">
+                            <p class="text-slate-400 font-bold uppercase text-[9px] tracking-[0.3em]">Live Product Stock & Catalog</p>
+                            {% if currentCategory %}
+                                <span class="flex items-center gap-2 px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-500/30">
+                                    {{ currentCategory.name }}
+                                    <a href="{{ path('app_product_index') }}" class="hover:text-white transition-colors">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="3" stroke-linecap="round"/></svg>
+                                    </a>
+                                </span>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
 
                 <div class="flex flex-wrap items-center justify-center lg:justify-end gap-3 w-full lg:w-auto">
                     {# Export Button: Aligned py-3 #}
-                    <a href="{{ path('app_product_export_excel', {sort: currentSort}) }}" id="exportBtn"
+                    <a href="{{ path('app_product_export_excel', {sort: currentSort, category: currentCategory ? currentCategory.id : null}) }}" id="exportBtn"
                        class="inline-flex items-center px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-black rounded-xl transition-all uppercase tracking-widest border border-slate-700">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round"/>
@@ -171,93 +181,9 @@
 
     <style>.line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }</style>
 
-    <script>
-        (function() {
-            // 1. Lightbox
-            window.maximizeImage = function(img) {
-                const lb = document.getElementById('image-lightbox');
-                document.getElementById('lightbox-img').src = img.src;
-                lb.classList.replace('hidden', 'flex');
-                document.body.style.overflow = 'hidden';
-            };
-            window.closeLightbox = () => {
-                document.getElementById('image-lightbox').classList.replace('flex', 'hidden');
-                document.body.style.overflow = 'auto';
-            };
 
-            // 2. Export with Filter (Matching your Controller 'q' param)
-            const exportBtn = document.getElementById('exportBtn');
-            const tableSearch = document.getElementById('tableSearch');
-            if (exportBtn && tableSearch) {
-                exportBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const searchTerm = tableSearch.value.trim();
-                    const url = new URL(this.href, window.location.origin);
-                    if (searchTerm) url.searchParams.set('q', searchTerm); // SETS 'q' TO MATCH CONTROLLER
-                    window.location.href = url.toString();
-                });
-            }
+{% endblock %}
 
-            // 3. Instant Search (UI only)
-            tableSearch.addEventListener('input', function(e) {
-                const term = e.target.value.toLowerCase();
-                const cards = document.querySelectorAll('.product-card');
-                let found = 0;
-                cards.forEach(card => {
-                    const text = card.innerText.toLowerCase();
-                    const match = text.includes(term);
-                    card.style.display = match ? '' : 'none';
-                    if (match) found++;
-                });
-                document.getElementById('noSearchResults').classList.toggle('hidden', found > 0 || term === '');
-            });
-
-            // 4. Select Mode
-            const toggleBtn = document.getElementById('toggleSelectMode');
-            const selectModeText = document.getElementById('selectModeText');
-            let isSelectMode = false;
-
-            toggleBtn.addEventListener('click', () => {
-                isSelectMode = !isSelectMode;
-                toggleBtn.classList.toggle('bg-blue-600', isSelectMode);
-                toggleBtn.classList.toggle('text-white', isSelectMode);
-                selectModeText.innerText = isSelectMode ? "Cancel" : "Select Items";
-
-                document.querySelectorAll('.checkbox-col').forEach(col => {
-                    col.classList.toggle('opacity-0', !isSelectMode);
-                    col.classList.toggle('pointer-events-none', !isSelectMode);
-                });
-
-                if (!isSelectMode) {
-                    document.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = false);
-                    updateBatchBar();
-                }
-            });
-
-            // 5. Batch Logic
-            document.querySelectorAll('.product-checkbox').forEach(cb => {
-                cb.addEventListener('change', updateBatchBar);
-            });
-
-            function updateBatchBar() {
-                const checked = document.querySelectorAll('.product-checkbox:checked');
-                const bar = document.getElementById('batchBar');
-                if (checked.length > 0) {
-                    document.getElementById('selectedCount').innerText = checked.length;
-                    document.getElementById('bulkIdsInput').value = Array.from(checked).map(c => c.value).join(',');
-                    bar.classList.remove('translate-y-40', 'opacity-0');
-                } else {
-                    bar.classList.add('translate-y-40', 'opacity-0');
-                }
-            }
-
-            // 6. Delete Modal
-            window.openConfirmModal = (type, url, token) => {
-                document.getElementById('modalDeleteForm').action = url;
-                document.getElementById('modalDeleteToken').value = token;
-                document.getElementById('deleteModal').classList.replace('hidden', 'flex');
-            };
-            window.closeDeleteModal = () => document.getElementById('deleteModal').classList.replace('flex', 'hidden');
-        })();
-    </script>
+{% block javascripts %}
+    <script src="{{ asset('js/products.js') }}"></script>
 {% endblock %}
