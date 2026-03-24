@@ -18,3 +18,16 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+###> Custom SalmasKit Rules ###
+# Ignore all environment files (keep .env.dist or .env.example if you have them)
+/.env
+/.env.dev
+/.env.test
+
+# Ignore local Docker overrides
+/compose.override.yaml
+
+# Ignore editor-specific settings
+/.editorconfig
+###< Custom SalmasKit Rules ###
